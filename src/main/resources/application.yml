@@ -1,0 +1,54 @@
+server:
+  port: 8082
+  forward-headers-strategy: NATIVE
+
+spring:
+  mail:
+    values:
+      email-verification: noreply-email-verification@kalyanam.fr
+      password-reset: noreply-password-reset@kalyanam.fr
+      password-reseted: noreply-new-password@kalyanam.fr
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+springdoc:
+  info:
+    title: Profile-service API
+    version: 1.0
+    description: This service manage meet profiles
+  packagesToScan: mj.carthy.profileservice
+  authorize:
+    path: /v3/api-docs/swagger-config, /v3/api-docs, /swagger-resources, /swagger-resources/**, /swagger-ui.html, /webjars/swagger-ui/**
+
+security:
+  code:
+    validity: 15
+
+mini-io:
+  url: http://localhost:9000
+  mini-io-access-key: mini-io-access-key
+  minio-secret-key: minio-secret-key
+  presigned-url-limit: 300 # Seconds
+  bucket-name:
+    pictures: pictures
+  limit-of-documents:
+    pictures: 7
+
+client-service:
+  paypal:
+    url: https://api.sandbox.paypal.com/
+    client-key: AWyfstwO5ZYZEgK-OorB19OY1IPkzixC-g_CiqN14RhMo6iWa90JpcawO72YQ_MHKbuZoqIoejvgzZL_
+    secret-key: EHNutOpg6c_mCyJtIOEywP8qZc63tZb1jtseudKYSHzF_7F7hHcgJpHMqhBpk5cehLocNHdHZm4_2TIV
+    grant-type: client_credentials
+    invoicer:
+      mail: sb-6ncd93278763@personal.example.com
+      website: http://swagger3.documentation.integration.kalyanam.fr/
+      logo-url: https://www.flaticon.com/svg/static/icons/svg/860/860957.svg

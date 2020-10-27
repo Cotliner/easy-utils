@@ -1,0 +1,12 @@
+server:
+  port: ${SERVER_PORT}
+
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+
+mini-io:
+  url: ${MINIO_URL}
+  mini-io-access-key: ${MINIO_ACCESS_KEY}
+  minio-secret-key: ${MINIO_SECRET_KEY}

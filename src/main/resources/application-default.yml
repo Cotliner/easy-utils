@@ -1,0 +1,9 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/profile
+  mail:
+    host: ssl0.ovh.net
+    port: 587
+    username: meet-service-integration@kalyanam.fr
+    password: integration
