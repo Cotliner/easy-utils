@@ -12,6 +12,7 @@ import mj.carthy.profileservice.entities.user.enums.CodeReason.EMAIL_VERIFICATIO
 import mj.carthy.profileservice.helper.ErrorService
 import mj.carthy.profileservice.helper.ErrorService.Companion.AUTHENTICATION_DENIED
 import mj.carthy.profileservice.helper.ErrorService.Companion.EMAIL_VERIFICATION_FAILED
+import mj.carthy.profileservice.mapper.toUserSecurity
 import mj.carthy.profileservice.repositories.reactive.UserReactiveRepository
 import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
@@ -49,7 +50,7 @@ import java.util.*
 
         verifyUserIsEnable(updatedUser)
 
-        return tokenCreator.invoke(updatedUser.id!!, createUserSecurity(updatedUser))
+        return tokenCreator.invoke(updatedUser.id!!, updatedUser.toUserSecurity())
     }
 
     @VisibleForTesting fun invalidAuth(username: String): Nothing = throw AccessDeniedException(format(
@@ -64,15 +65,4 @@ import java.util.*
             throw UnprocessableEntityException(USER_NOT_ENABLE, ErrorService.USER_NOT_ENABLE);
         }
     }
-
-    @VisibleForTesting suspend fun createUserSecurity(user: User): UserSecurity = UserSecurity(
-            user.id!!,
-            user.sexe,
-            user.username,
-            user.password,
-            user.authorities,
-            user.accountNonExpired,
-            user.credentialsNonExpired,
-            user.isEnabled
-    )
 }

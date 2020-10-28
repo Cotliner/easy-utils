@@ -4,6 +4,7 @@ import kotlinx.coroutines.reactor.mono
 import mj.carthy.easysecurity.model.Token
 import mj.carthy.easysecurity.service.JwtAuthenticateTokenService
 import mj.carthy.profileservice.securities.dto.UserLoginDto
+import mj.carthy.profileservice.securities.scope.AllowAll
 import mj.carthy.profileservice.securities.services.ConnectionService
 import mj.carthy.profileservice.securities.services.TokenService
 import mj.carthy.profileservice.securities.web.TokenResource.Companion.URI
@@ -23,6 +24,7 @@ import javax.validation.Valid
 ) {
     companion object { const val URI = "/api/v1/auth/token" }
 
+    @AllowAll
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(consumes = [APPLICATION_JSON_VALUE]) fun create (
             request: ServerHttpRequest,
