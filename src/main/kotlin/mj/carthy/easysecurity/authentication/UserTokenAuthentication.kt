@@ -9,5 +9,5 @@ class UserTokenAuthentication(
 ) : AbstractAuthenticationToken(userSecurity.authorities) {
     override fun getCredentials(): String = token
     override fun getPrincipal(): UserSecurity = userSecurity
-    override fun isAuthenticated(): Boolean = userSecurity.authorities.isNotEmpty()
+    override fun isAuthenticated(): Boolean = userSecurity.isEnabled && userSecurity.authorities.isNotEmpty()
 }
