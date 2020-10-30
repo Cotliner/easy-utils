@@ -29,6 +29,7 @@ import java.util.function.BiConsumer
 import java.util.function.Consumer
 import java.util.function.Function
 import java.util.stream.Stream
+import kotlin.reflect.KFunction1
 import kotlin.streams.toList
 
 /*PATTERN*/
@@ -131,6 +132,8 @@ private fun <I, M> monoError(mClass: Class<M>, id: I): Mono<M> = Mono.error(Enti
         mClass.simpleName,
         id), ENTITY_NOT_FOUND
 ))
+
+fun <T> T.doAfterTerminate(consumer: KFunction1<T, Unit>): Mono<out T> = Mono.just(this).doAfterTerminate{ consumer.invoke(this) }
 
 suspend fun <T> Mono<out T>.doSeparately(consumer: (elem: T) -> Unit): T = this.flatMap { elem -> Mono.just(
         elem
