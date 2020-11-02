@@ -15,6 +15,7 @@ import mj.carthy.easyutils.model.PaginationResult
 import org.apache.commons.lang3.exception.ExceptionUtils.getMessage
 import org.springframework.http.HttpStatus
 import org.springframework.http.server.reactive.ServerHttpRequest
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.lang.String.format
 import java.math.BigDecimal
@@ -28,6 +29,7 @@ import java.util.*
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 import java.util.function.Function
+import java.util.function.Function.identity
 import java.util.stream.Stream
 import kotlin.reflect.KFunction1
 import kotlin.streams.toList
@@ -53,27 +55,27 @@ const val CODE_GENERATOR_HIGH_VALUE = 100000
 const val CAN_NOT_FOUND_ZODIAC_SIGN = "Can not found zodiac sign of date %s"
 
 fun error(ex: Exception, request: ServerHttpRequest, status: HttpStatus, code: ErrorCode): ErrorDetails = ErrorDetails(
-        Instant.now(),
-        getMessage(ex),
-        request.uri.rawPath,
-        status,
-        status.value(),
-        code
+    Instant.now(),
+    getMessage(ex),
+    request.uri.rawPath,
+    status,
+    status.value(),
+    code
 )
 
 fun error(message: String, request: ServerHttpRequest, status: HttpStatus, code: ErrorCode): ErrorDetails = ErrorDetails(
-        Instant.now(),
-        message,
-        request.uri.rawPath,
-        status,
-        status.value(),
-        code
+    Instant.now(),
+    message,
+    request.uri.rawPath,
+    status,
+    status.value(),
+    code
 )
 
-fun <C: BaseDocument<UUID>, T> throwIfIsNull(
-        element: C,
-        getter: Function<C, T>,
-        propertyName: String
+fun <C : BaseDocument<UUID>, T> throwIfIsNull(
+    element: C,
+    getter: Function<C, T>,
+    propertyName: String
 ) {
     if (getter.apply(element) == null) {
         val message: String = format(PROPERTY_NOT_FOUND, propertyName, element.javaClass.simpleName, element.id)
@@ -86,11 +88,11 @@ fun <T> setIfIsNonNull(setter: Consumer<T>, valueToSet: T) {
 }
 
 fun <C, T> setIfIsNonNull(
-       mainSetter: Consumer<C>,
-       element: C,
-       cClass: Class<C>,
-       setter: BiConsumer<C, T>,
-       valueToSet: T
+    mainSetter: Consumer<C>,
+    element: C,
+    cClass: Class<C>,
+    setter: BiConsumer<C, T>,
+    valueToSet: T
 ) {
     if (valueToSet != null) {
         val c: C = createOrGet(element, cClass)
@@ -102,9 +104,9 @@ fun <C, T> setIfIsNonNull(
 fun <T> createOrGet(element: T, tClass: Class<T>): T = element ?: tClass.getDeclaredConstructor().newInstance()
 
 fun <C, T> throwIfIsNull(
-        element: C,
-        getter: Function<C, T>,
-        propertyName: String
+    element: C,
+    getter: Function<C, T>,
+    propertyName: String
 ) {
     if (getter.apply(element) == null) {
         val message: String = format(PROPERTY_NOT_FOUND_WITHOUT_ID, propertyName, element);
@@ -113,42 +115,42 @@ fun <C, T> throwIfIsNull(
 }
 
 fun <I, M> findOrThrow(
-        request: (id: I) -> Optional<M>,
-        mClass: Class<M>,
-        id: I
+    request: (id: I) -> Optional<M>,
+    mClass: Class<M>,
+    id: I
 ): M = request.invoke(id).orElseThrow{EntityNotFoundException(
-        format(CAN_NOT_FOUND_ENTITY_WITH_ID, mClass.simpleName, id),
-        ENTITY_NOT_FOUND
+    format(CAN_NOT_FOUND_ENTITY_WITH_ID, mClass.simpleName, id),
+    ENTITY_NOT_FOUND
 )}
 
 suspend fun <I, M> monoOrError(
-        request: (id: I) -> Mono<M>,
-        mClass: Class<M>,
-        id: I
+    request: (id: I) -> Mono<M>,
+    mClass: Class<M>,
+    id: I
 ): M = request.invoke(id).switchIfEmpty(monoError(mClass, id)).awaitSingle()
 
 private fun <I, M> monoError(mClass: Class<M>, id: I): Mono<M> = Mono.error(EntityNotFoundException(format(
-        CAN_NOT_FOUND_ENTITY_WITH_ID,
-        mClass.simpleName,
-        id), ENTITY_NOT_FOUND
+    CAN_NOT_FOUND_ENTITY_WITH_ID,
+    mClass.simpleName,
+    id), ENTITY_NOT_FOUND
 ))
 
 fun <T> T.doAfterTerminate(consumer: KFunction1<T, Unit>): Mono<out T> = Mono.just(this).doAfterTerminate{ consumer.invoke(this) }
 
 suspend fun <T> Mono<out T>.doSeparately(consumer: (elem: T) -> Unit): T = this.flatMap { elem -> Mono.just(
-        elem
+    elem
 ).doAfterTerminate{consumer.invoke(elem)}}.awaitSingle();
 
 fun LocalDate.isBetween(before: LocalDate, after: LocalDate): Boolean = this.isAfter(before) && this.isBefore(after);
 
 fun LocalDate.isBetween(before: Instant, after: Instant): Boolean = this.isAfter(before.atZone(
-        systemDefault()).toLocalDate()
+    systemDefault()).toLocalDate()
 ) && this.isBefore(after.atZone(systemDefault()).toLocalDate())
 
 fun Instant.isBetween(before: Instant, after: Instant): Boolean = this.isAfter(before) && this.isBefore(after);
 
 fun Instant.isBetween(before: LocalDate, after: LocalDate): Boolean = this.isAfter(
-        before.atStartOfDay(systemDefault()).toInstant()
+    before.atStartOfDay(systemDefault()).toInstant()
 ) && this.isBefore(after.atStartOfDay(systemDefault()).toInstant())
 
 fun Number.format(scaleValue: Number = SCALE_AFTER_DOT): String = BigDecimal(this.toString()).setScale(scaleValue.toInt(), HALF_EVEN).toString()
@@ -157,8 +159,10 @@ fun codeGenerator(): String = (RANDOM.nextInt(CODE_GENERATOR_HIGH_VALUE - CODE_G
 
 fun <T> Collection<T>.paginationResult(page: Number, size: Number): PaginationResult<T> = PaginationResult(this, page, size, this.size)
 
-fun <T> Stream<T>.toSet(): Set<T> = this.toList().toSet();
-fun <T> Stream<T>.toMutableSet(): MutableSet<T> = this.toList().toMutableSet();
+fun <T> Stream<T>.toSet(): Set<T> = this.toList().toSet()
+fun <T> Stream<T>.toMutableSet(): MutableSet<T> = this.toList().toMutableSet()
+
+fun <ID, T: BaseDocument<ID>> Flux<T>.collectById(): Mono<MutableMap<ID?, T>> = this.collectMap(Function(BaseDocument<ID>::id), identity())
 
 fun zodiacSign(dateOfBirth: LocalDate): ZodiacSign = when (dateOfBirth.monthValue) {
     1 -> when (dateOfBirth.dayOfMonth) { in 1..20 -> CAPRICORN else -> AQUARIUS }
