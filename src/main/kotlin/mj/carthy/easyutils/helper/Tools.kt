@@ -2,6 +2,9 @@ package mj.carthy.easyutils.helper
 
 import kotlinx.coroutines.reactive.awaitSingle
 import mj.carthy.easyutils.document.BaseDocument
+import mj.carthy.easyutils.enums.Sexe
+import mj.carthy.easyutils.enums.Sexe.FEMALE
+import mj.carthy.easyutils.enums.Sexe.MALE
 import mj.carthy.easyutils.enums.ZodiacSign
 import mj.carthy.easyutils.enums.ZodiacSign.*
 import mj.carthy.easyutils.exception.EntityNotFoundException
@@ -12,8 +15,12 @@ import mj.carthy.easyutils.helper.Errors.Companion.ErrorCode
 import mj.carthy.easyutils.helper.Errors.Companion.ZODIC_SIGN_NOT_FOUND
 import mj.carthy.easyutils.model.ErrorDetails
 import mj.carthy.easyutils.model.PaginationResult
+import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.exception.ExceptionUtils.getMessage
+import org.springframework.core.io.buffer.DataBuffer
+import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpStatus
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.http.server.reactive.ServerHttpRequest
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -178,4 +185,22 @@ fun zodiacSign(dateOfBirth: LocalDate): ZodiacSign = when (dateOfBirth.monthValu
     11 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> SCORPIO else -> SAGITTARIUS }
     12 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> SAGITTARIUS else -> CAPRICORN }
     else -> throw UnprocessableEntityException(format(CAN_NOT_FOUND_ZODIAC_SIGN, dateOfBirth), ZODIC_SIGN_NOT_FOUND);
+}
+
+fun DataBuffer.byteForBuffer(): ByteArray {
+    val bytes: ByteArray = byteArrayOf(this.readableByteCount().toByte())
+    this.read(bytes)
+    DataBufferUtils.release(this)
+    return bytes
+}
+
+fun Flux<FilePart>.getByte(): Flux<ByteArray> = this.flatMap(FilePart::getByte)
+
+fun Mono<FilePart>.getByte(): Mono<ByteArray> = this.flatMap(FilePart::getByte)
+
+fun FilePart.getByte(): Mono<ByteArray> = this.content().map(DataBuffer::byteForBuffer).reduce(ArrayUtils::addAll)
+
+fun Sexe.inversed(): Sexe = when(this) {
+    MALE -> FEMALE
+    FEMALE -> MALE
 }
