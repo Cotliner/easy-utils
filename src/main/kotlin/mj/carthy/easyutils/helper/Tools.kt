@@ -142,7 +142,7 @@ private fun <I, M> monoError(mClass: Class<M>, id: I): Mono<M> = Mono.error(Enti
     id), ENTITY_NOT_FOUND
 ))
 
-fun <T> T.doAfterTerminate(consumer: KFunction1<T, Unit>): Mono<out T> = Mono.just(this).doAfterTerminate{ consumer.invoke(this) }
+fun <T> T.doAfterTerminate(consumer: KFunction1<T, Unit>): Mono<T> = Mono.just(this).doAfterTerminate{ consumer.invoke(this) }
 
 suspend fun <T> Mono<out T>.doSeparately(consumer: (elem: T) -> Unit): T = this.flatMap { elem -> Mono.just(
     elem
