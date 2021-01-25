@@ -204,3 +204,5 @@ fun Sexe.inversed(): Sexe = when(this) {
     MALE -> FEMALE
     FEMALE -> MALE
 }
+
+operator fun Number.invoke(): BigDecimal = this.toString().toBigDecimal()
