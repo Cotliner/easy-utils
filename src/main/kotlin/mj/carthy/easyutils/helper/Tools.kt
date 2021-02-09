@@ -194,11 +194,11 @@ fun DataBuffer.byteForBuffer(): ByteArray {
     return bytes
 }
 
-fun Flux<FilePart>.getByte(): Flux<ByteArray> = this.flatMap(FilePart::getByte)
+fun Flux<FilePart>.bytes(): Flux<ByteArray> = this.flatMap(FilePart::bytes)
 
-fun Mono<FilePart>.getByte(): Mono<ByteArray> = this.flatMap(FilePart::getByte)
+fun Mono<FilePart>.bytes(): Mono<ByteArray> = this.flatMap(FilePart::bytes)
 
-fun FilePart.getByte(): Mono<ByteArray> = this.content().map(DataBuffer::byteForBuffer).reduce(ArrayUtils::addAll)
+fun FilePart.bytes(): Mono<ByteArray> = this.content().map(DataBuffer::byteForBuffer).reduce(ArrayUtils::addAll)
 
 fun Sexe.inversed(): Sexe = when(this) {
     MALE -> FEMALE
@@ -206,3 +206,5 @@ fun Sexe.inversed(): Sexe = when(this) {
 }
 
 operator fun Number.invoke(): BigDecimal = this.toString().toBigDecimal()
+
+fun BigDecimal.isNegavtive(): Boolean = this.compareTo(BigDecimal.ZERO) > 0
