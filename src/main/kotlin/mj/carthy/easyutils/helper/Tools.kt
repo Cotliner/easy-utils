@@ -207,4 +207,4 @@ fun Sexe.inversed(): Sexe = when(this) {
 
 operator fun Number.invoke(): BigDecimal = this.toString().toBigDecimal()
 
-fun BigDecimal.isNegavtive(): Boolean = this.compareTo(BigDecimal.ZERO) > 0
+fun BigDecimal.isPositive(): Boolean = this > BigDecimal.ZERO
