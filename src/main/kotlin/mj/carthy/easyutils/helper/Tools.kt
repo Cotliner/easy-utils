@@ -208,3 +208,7 @@ fun Sexe.inversed(): Sexe = when(this) {
 operator fun Number.invoke(): BigDecimal = this.toString().toBigDecimal()
 
 fun BigDecimal.isPositive(): Boolean = this > BigDecimal.ZERO
+
+fun <K: Comparable<K>, V> MutableMap<K, V>.maxByKey(): V = this.maxByOrNull { it.key }!!.value
+
+fun <K, V: Comparable<V>> MutableMap<K, V>.maxByValue(): V = this.maxByOrNull { it.value }!!.value
