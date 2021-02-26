@@ -37,6 +37,7 @@ import java.util.function.BiConsumer
 import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Function.identity
+import java.util.stream.Collectors
 import java.util.stream.Stream
 import kotlin.reflect.KFunction1
 import kotlin.streams.toList
@@ -206,9 +207,13 @@ fun Sexe.inversed(): Sexe = when(this) {
 }
 
 operator fun Number.invoke(): BigDecimal = this.toString().toBigDecimal()
+operator fun String.invoke(): BigDecimal = this.toBigDecimal()
+operator fun BigDecimal.invoke(): String = this.toPlainString()
 
 fun BigDecimal.isPositive(): Boolean = this > BigDecimal.ZERO
 
-fun <K: Comparable<K>, V> MutableMap<K, V>.maxByKey(): V = this.maxByOrNull { it.key }!!.value
+fun <K: Comparable<K>, V> MutableMap<K, V>.maxByKey(): V? = this.maxByOrNull { it.key }?.value
 
-fun <K, V: Comparable<V>> MutableMap<K, V>.maxByValue(): V = this.maxByOrNull { it.value }!!.value
+fun <K, V: Comparable<V>> MutableMap<K, V>.maxByValue(): V? = this.maxByOrNull { it.value }?.value
+
+suspend fun <T> Flux<T>.toSet() = this.collect(Collectors.toSet()).awaitSingle()
