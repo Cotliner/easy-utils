@@ -217,3 +217,8 @@ fun <K: Comparable<K>, V> MutableMap<K, V>.maxByKey(): V? = this.maxByOrNull { i
 fun <K, V: Comparable<V>> MutableMap<K, V>.maxByValue(): V? = this.maxByOrNull { it.value }?.value
 
 suspend fun <T> Flux<T>.toSet() = this.collect(Collectors.toSet()).awaitSingle()
+
+fun <K, V> MutableMap<K, V>.putIfIsAbsent(key: K, value: V): V {
+    this[key] = value
+    return value
+}
