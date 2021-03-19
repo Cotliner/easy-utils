@@ -32,6 +32,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId.systemDefault
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit.YEARS
 import java.util.*
 import java.util.function.BiConsumer
 import java.util.function.Consumer
@@ -40,6 +41,7 @@ import java.util.function.Function.identity
 import java.util.stream.Collectors
 import java.util.stream.Stream
 import kotlin.reflect.KFunction1
+import kotlin.reflect.KSuspendFunction1
 import kotlin.streams.toList
 
 /*PATTERN*/
@@ -131,6 +133,15 @@ fun <I, M> findOrThrow(
     ENTITY_NOT_FOUND
 )}
 
+fun <I, M> findOrThrow(
+    request: KSuspendFunction1<String, M?>,
+    mClass: Class<M>,
+    id: I
+): M? = request.call(id) ?: throw EntityNotFoundException(
+    format(CAN_NOT_FOUND_ENTITY_WITH_ID, mClass.simpleName, id),
+    ENTITY_NOT_FOUND
+)
+
 suspend fun <I, M> monoOrError(
     request: (id: I) -> Mono<M>,
     mClass: Class<M>,
@@ -171,6 +182,8 @@ fun <T> Stream<T>.toSet(): Set<T> = this.toList().toSet()
 fun <T> Stream<T>.toMutableSet(): MutableSet<T> = this.toList().toMutableSet()
 
 fun <ID, T: BaseDocument<ID>> Flux<T>.collectById(): Mono<MutableMap<ID?, T>> = this.collectMap(Function(BaseDocument<ID>::id), identity())
+
+fun <ID, T: BaseDocument<ID>> Collection<T>.collectById(): Map<ID?, T> = this.associateBy { it.id }
 
 fun zodiacSign(dateOfBirth: LocalDate): ZodiacSign = when (dateOfBirth.monthValue) {
     1 -> when (dateOfBirth.dayOfMonth) { in 1..20 -> CAPRICORN else -> AQUARIUS }
@@ -222,3 +235,7 @@ fun <K, V> MutableMap<K, V>.putIfIsAbsent(key: K, value: V): V {
     this[key] = value
     return value
 }
+
+fun Instant.moreThanHighteen(): Boolean = this.isBefore(Instant.now().minus(18, YEARS)) || this.atZone(systemDefault()).toLocalDate().isEqual(LocalDate.now().minusYears(18))
+
+fun LocalDate.moreThanHigthteen(): Boolean = this.isBefore(LocalDate.now().minusYears(18)) || this.isEqual(LocalDate.now().minusYears(18))
