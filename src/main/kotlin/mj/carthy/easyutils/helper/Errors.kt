@@ -6,8 +6,6 @@ import java.util.*
 import kotlin.streams.toList
 
 open class Errors {
-
-
     companion object {
         class ErrorCode constructor(val value: String)
 
@@ -17,7 +15,7 @@ open class Errors {
         val ZODIC_SIGN_NOT_FOUND: ErrorCode = ErrorCode("ZODIC_SIGN_NOT_FOUND")
     }
 
-    fun errors(): Array<ErrorCode> = Arrays.stream<Field>(ErrorCode::class.java.fields).map {
+    fun errors(): Array<ErrorCode> = Arrays.stream(ErrorCode::class.java.fields).map {
             field: Field -> ReflectionUtils.getField(
             field,
             Errors::class.java
