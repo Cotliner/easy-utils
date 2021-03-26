@@ -1,10 +1,8 @@
 package mj.carthy.easyutils.helper
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import org.springframework.util.ReflectionUtils
+import java.lang.reflect.Field
 
 open class Errors {
     companion object {
@@ -16,7 +14,8 @@ open class Errors {
         @JvmField val ZODIAC_SIGN_NOT_FOUND: ErrorCode = ErrorCode("ZODIAC_SIGN_NOT_FOUND")
     }
 
-    open fun errors(): Flow<ErrorCode> = Errors::class.java.declaredFields.asFlow().filter {
-        it.type == ErrorCode::class.java
-    }.map { ReflectionUtils.getField(it, Errors::class.java) as ErrorCode }
+    fun errors(): Flow<ErrorCode> = merge(
+        Errors::class.java.declaredFields.asFlow(),
+        this::class.java.declaredFields.asFlow(),
+    ).filter { it is Field && it.type == ErrorCode::class.java }.map { ReflectionUtils.getField(it as Field, this::class.java) as ErrorCode }
 }
