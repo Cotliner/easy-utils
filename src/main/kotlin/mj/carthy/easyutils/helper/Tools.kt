@@ -12,7 +12,7 @@ import mj.carthy.easyutils.exception.PropertyNotFoundException
 import mj.carthy.easyutils.exception.UnprocessableEntityException
 import mj.carthy.easyutils.helper.Errors.Companion.ENTITY_NOT_FOUND
 import mj.carthy.easyutils.helper.Errors.Companion.ErrorCode
-import mj.carthy.easyutils.helper.Errors.Companion.ZODIC_SIGN_NOT_FOUND
+import mj.carthy.easyutils.helper.Errors.Companion.ZODIAC_SIGN_NOT_FOUND
 import mj.carthy.easyutils.model.ErrorDetails
 import mj.carthy.easyutils.model.PaginationResult
 import org.apache.commons.lang3.ArrayUtils
@@ -198,7 +198,7 @@ fun zodiacSign(dateOfBirth: LocalDate): ZodiacSign = when (dateOfBirth.monthValu
     10 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> LIBRA else -> SCORPIO }
     11 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> SCORPIO else -> SAGITTARIUS }
     12 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> SAGITTARIUS else -> CAPRICORN }
-    else -> throw UnprocessableEntityException(format(CAN_NOT_FOUND_ZODIAC_SIGN, dateOfBirth), ZODIC_SIGN_NOT_FOUND);
+    else -> throw UnprocessableEntityException(format(CAN_NOT_FOUND_ZODIAC_SIGN, dateOfBirth), ZODIAC_SIGN_NOT_FOUND);
 }
 
 fun DataBuffer.byteForBuffer(): ByteArray {

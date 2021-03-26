@@ -1,23 +1,22 @@
 package mj.carthy.easyutils.helper
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import org.springframework.util.ReflectionUtils
-import java.lang.reflect.Field
-import java.util.*
-import kotlin.streams.toList
 
 open class Errors {
     companion object {
         class ErrorCode constructor(val value: String)
 
-        val ENTITY_NOT_FOUND: ErrorCode = ErrorCode("ENTITY_NOT_FOUND")
-        val PROPERTY_NOT_FOUND: ErrorCode = ErrorCode("PROPERTY_NOT_FOUND")
-        val SERVER_ERROR: ErrorCode = ErrorCode("SERVER_ERROR")
-        val ZODIC_SIGN_NOT_FOUND: ErrorCode = ErrorCode("ZODIC_SIGN_NOT_FOUND")
+        @JvmField val ENTITY_NOT_FOUND: ErrorCode = ErrorCode("ENTITY_NOT_FOUND")
+        @JvmField val PROPERTY_NOT_FOUND: ErrorCode = ErrorCode("PROPERTY_NOT_FOUND")
+        @JvmField val SERVER_ERROR: ErrorCode = ErrorCode("SERVER_ERROR")
+        @JvmField val ZODIAC_SIGN_NOT_FOUND: ErrorCode = ErrorCode("ZODIAC_SIGN_NOT_FOUND")
     }
 
-    fun errors(): Array<ErrorCode> = Arrays.stream(ErrorCode::class.java.fields).map {
-            field: Field -> ReflectionUtils.getField(
-            field,
-            Errors::class.java
-    ) }.map{ it as ErrorCode }.toList().toTypedArray()
+    open fun errors(): Flow<ErrorCode> = Errors::class.java.declaredFields.asFlow().filter {
+        it.type == ErrorCode::class.java
+    }.map { ReflectionUtils.getField(it, Errors::class.java) as ErrorCode }
 }

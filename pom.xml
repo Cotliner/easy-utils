@@ -24,7 +24,7 @@
 
 	<properties>
 		<java.version>1.8</java.version>
-		<kotlin.version>1.4.30</kotlin.version>
+		<kotlin.version>1.4.31</kotlin.version>
 		<!--Libs-->
 		<commons-lang3.version>3.9</commons-lang3.version>
 		<passay.version>1.3.0</passay.version>
