@@ -4,7 +4,6 @@ import mj.carthy.easyutils.enums.Sexe
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import java.util.*
-import kotlin.collections.HashSet
 
 data class UserSecurity(
         val id: UUID,

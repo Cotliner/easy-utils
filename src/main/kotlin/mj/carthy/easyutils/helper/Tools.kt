@@ -28,6 +28,7 @@ import java.lang.String.format
 import java.math.BigDecimal
 import java.math.RoundingMode.HALF_EVEN
 import java.text.DecimalFormat
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId.systemDefault
@@ -133,11 +134,11 @@ fun <I, M> findOrThrow(
     ENTITY_NOT_FOUND
 )}
 
-fun <I, M> findOrThrow(
-    request: KSuspendFunction1<String, M?>,
+suspend fun <I, M> findOrThrow(
+    request: KSuspendFunction1<I, M?>,
     mClass: Class<M>,
     id: I
-): M? = request.call(id) ?: throw EntityNotFoundException(
+): M? = request.invoke(id) ?: throw EntityNotFoundException(
     format(CAN_NOT_FOUND_ENTITY_WITH_ID, mClass.simpleName, id),
     ENTITY_NOT_FOUND
 )
@@ -239,3 +240,5 @@ fun <K, V> MutableMap<K, V>.putIfIsAbsent(key: K, value: V): V {
 fun Instant.moreThanHighteen(): Boolean = this.isBefore(Instant.now().minus(18, YEARS)) || this.atZone(systemDefault()).toLocalDate().isEqual(LocalDate.now().minusYears(18))
 
 fun LocalDate.moreThanHigthteen(): Boolean = this.isBefore(LocalDate.now().minusYears(18)) || this.isEqual(LocalDate.now().minusYears(18))
+
+fun Duration.isPositive() = this.seconds > 0

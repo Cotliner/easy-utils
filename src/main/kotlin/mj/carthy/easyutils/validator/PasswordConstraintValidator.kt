@@ -27,9 +27,11 @@ class PasswordConstraintValidator: ConstraintValidator<Password, String> {
 
     override fun initialize(
             constraintAnnotation: Password
-    ) { FileReader(this.javaClass.getResource(PATH_TO_INVALID_PASSWORD_FILE).file).use {
-            dictionaryRule = DictionaryRule(WordListDictionary(createFromReader(singleton(it).toTypedArray(), FALSE, ArraysSort())))
-    } }
+    ) {
+      FileReader(this.javaClass.getResource(PATH_TO_INVALID_PASSWORD_FILE).file).use {
+        dictionaryRule = DictionaryRule(WordListDictionary(createFromReader(singleton(it).toTypedArray(), FALSE, ArraysSort())))
+      }
+    }
 
     override fun isValid(password: String, context: ConstraintValidatorContext): Boolean {
         val validator: PasswordValidator = PasswordValidator(mutableListOf(
@@ -47,19 +49,17 @@ class PasswordConstraintValidator: ConstraintValidator<Password, String> {
                 WhitespaceRule(),
                 // no common passwords
                 dictionaryRule
-        ));
+        ))
 
-        val result: RuleResult = validator.validate(PasswordData(password));
+        val result: RuleResult = validator.validate(PasswordData(password))
 
-        if (result.isValid) {
-            return TRUE;
-        }
+        if (result.isValid) return TRUE
 
         val messages: List<String> = validator.getMessages(result);
-        val messageTemplate: String = StringUtils.joinWith(DELIMITER, messages);
+        val messageTemplate: String = StringUtils.joinWith(DELIMITER, messages)
         context.buildConstraintViolationWithTemplate(messageTemplate)
                 .addConstraintViolation()
-                .disableDefaultConstraintViolation();
-        return FALSE;
+                .disableDefaultConstraintViolation()
+        return FALSE
     }
 }
