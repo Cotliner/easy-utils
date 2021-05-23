@@ -134,6 +134,14 @@ fun <I, M> findOrThrow(
     ENTITY_NOT_FOUND
 )}
 
+inline fun <I, reified M> findOrThrow(
+    request: (id: I) -> Optional<M>,
+    id: I
+): M = request.invoke(id).orElseThrow{EntityNotFoundException(
+    format(CAN_NOT_FOUND_ENTITY_WITH_ID, M::class.java.simpleName, id),
+    ENTITY_NOT_FOUND
+)}
+
 suspend fun <I, M> findOrThrow(
     request: KSuspendFunction1<I, M?>,
     mClass: Class<M>,
@@ -143,16 +151,14 @@ suspend fun <I, M> findOrThrow(
     ENTITY_NOT_FOUND
 )
 
-suspend fun <I, M> monoOrError(
+suspend inline fun <I, reified M> singleOrError(
     request: (id: I) -> Mono<M>,
-    mClass: Class<M>,
     id: I
-): M = request.invoke(id).switchIfEmpty(monoError(mClass, id)).awaitSingle()
+): M = request.invoke(id).switchIfEmpty(monoError<I, M>(id)).awaitSingle()
 
-private fun <I, M> monoError(mClass: Class<M>, id: I): Mono<M> = Mono.error(EntityNotFoundException(format(
-    CAN_NOT_FOUND_ENTITY_WITH_ID,
-    mClass.simpleName,
-    id), ENTITY_NOT_FOUND
+inline fun <I, reified M> monoError(id: I): Mono<M> = Mono.error(EntityNotFoundException(
+    format(CAN_NOT_FOUND_ENTITY_WITH_ID, M::class.java.simpleName, id),
+    ENTITY_NOT_FOUND
 ))
 
 fun <T> T.doAfterTerminate(consumer: KFunction1<T, Unit>): Mono<T> = Mono.just(this).doAfterTerminate{ consumer.invoke(this) }
