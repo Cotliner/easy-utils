@@ -1,7 +1,7 @@
 package mj.carthy.easyutils.test
 
-import mj.carthy.easyutils.enums.Sexe
-import mj.carthy.easyutils.enums.Sexe.MALE
+import mj.carthy.easyutils.enums.Sex
+import mj.carthy.easyutils.enums.Sex.MALE
 import org.springframework.security.test.context.support.WithSecurityContext
 
 @Retention(AnnotationRetention.RUNTIME)
@@ -10,7 +10,7 @@ annotation class MockedUser(
         val id: String = "24aa766d-2a2f-4649-b870-b88cca33bd76",
         val username: String = "john.doe@yopmail.com",
         val password: String = "password",
-        val sexe: Sexe = MALE,
+        val sex: Sex = MALE,
         val role: String = "ADMIN",
         val accountNonExpired: Boolean = true,
         val accountNonLocked: Boolean = true,

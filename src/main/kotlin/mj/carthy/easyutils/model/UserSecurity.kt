@@ -1,20 +1,20 @@
 package mj.carthy.easyutils.model
 
-import mj.carthy.easyutils.enums.Sexe
+import mj.carthy.easyutils.enums.Sex
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import java.util.*
 
 data class UserSecurity(
-        val id: UUID,
-        val sexe: Sexe,
-        private val username: String,
-        private val password: String,
-        private val authorities: MutableSet<out GrantedAuthority> = HashSet(),
-        private val accountNonExpired: Boolean = false,
-        private val accountNonLocked: Boolean = false,
-        private val credentialsNonExpired: Boolean = false,
-        private val enabled: Boolean = false
+  val id: UUID,
+  val sex: Sex,
+  private val username: String,
+  private val password: String,
+  private val authorities: MutableSet<out GrantedAuthority> = HashSet(),
+  private val accountNonExpired: Boolean = false,
+  private val accountNonLocked: Boolean = false,
+  private val credentialsNonExpired: Boolean = false,
+  private val enabled: Boolean = false
 ) : UserDetails {
     override fun getUsername(): String = username
     override fun getPassword(): String = password;

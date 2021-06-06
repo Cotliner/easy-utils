@@ -1,6 +1,6 @@
 package mj.carthy.easyutils.enums
 
-enum class Sexe {
+enum class Sex {
     MALE,
     FEMALE
 }

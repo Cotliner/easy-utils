@@ -23,7 +23,7 @@ class UserSecurityMockFatory(): WithSecurityContextFactory<MockedUser> {
 
     private fun createUserSecurity(customUser: MockedUser): UserSecurity = UserSecurity(
       UUID.fromString(customUser.id),
-      customUser.sexe,
+      customUser.sex,
       customUser.username,
       customUser.password,
       mutableSetOf(SimpleGrantedAuthority(customUser.role)),

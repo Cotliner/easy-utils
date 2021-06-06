@@ -2,9 +2,9 @@ package mj.carthy.easyutils.helper
 
 import kotlinx.coroutines.reactive.awaitSingle
 import mj.carthy.easyutils.document.BaseDocument
-import mj.carthy.easyutils.enums.Sexe
-import mj.carthy.easyutils.enums.Sexe.FEMALE
-import mj.carthy.easyutils.enums.Sexe.MALE
+import mj.carthy.easyutils.enums.Sex
+import mj.carthy.easyutils.enums.Sex.FEMALE
+import mj.carthy.easyutils.enums.Sex.MALE
 import mj.carthy.easyutils.enums.ZodiacSign
 import mj.carthy.easyutils.enums.ZodiacSign.*
 import mj.carthy.easyutils.exception.EntityNotFoundException
@@ -221,7 +221,7 @@ fun Mono<FilePart>.bytes(): Mono<ByteArray> = this.flatMap(FilePart::bytes)
 
 fun FilePart.bytes(): Mono<ByteArray> = this.content().map(DataBuffer::byteForBuffer).reduce(ArrayUtils::addAll)
 
-fun Sexe.inversed(): Sexe = when(this) {
+fun Sex.inversed(): Sex = when(this) {
     MALE -> FEMALE
     FEMALE -> MALE
 }
