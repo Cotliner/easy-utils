@@ -1,6 +1,7 @@
 package mj.carthy.easyutils.helper
 
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import mj.carthy.easyutils.document.BaseDocument
 import mj.carthy.easyutils.enums.Sex
 import mj.carthy.easyutils.enums.Sex.FEMALE
@@ -154,12 +155,11 @@ suspend fun <I, M> findOrThrow(
 suspend inline fun <I, reified M> singleOrError(
     request: (id: I) -> Mono<M>,
     id: I
-): M = request.invoke(id).switchIfEmpty(monoError<I, M>(id)).awaitSingle()
+): M = request.invoke(id).awaitSingleOrNull() ?: throw entityNotFoundException<I, M>(id)
 
-inline fun <I, reified M> monoError(id: I): Mono<M> = Mono.error(EntityNotFoundException(
-    format(CAN_NOT_FOUND_ENTITY_WITH_ID, M::class.java.simpleName, id),
-    ENTITY_NOT_FOUND
-))
+inline fun <I, reified M> entityNotFoundException(
+    id: I
+): EntityNotFoundException = EntityNotFoundException(format(CAN_NOT_FOUND_ENTITY_WITH_ID, M::class.java.simpleName, id), ENTITY_NOT_FOUND)
 
 fun <T> T.doAfterTerminate(consumer: KFunction1<T, Unit>): Mono<T> = Mono.just(this).doAfterTerminate{ consumer.invoke(this) }
 
