@@ -1,7 +1,7 @@
 package mj.carthy.easyutils.helper
 
 import kotlinx.coroutines.reactive.awaitSingle
-import kotlinx.coroutines.reactor.awaitSingleOrNull
+import kotlinx.coroutines.reactive.awaitSingleOrNull
 import mj.carthy.easyutils.document.BaseDocument
 import mj.carthy.easyutils.enums.Sex
 import mj.carthy.easyutils.enums.Sex.FEMALE
@@ -121,8 +121,8 @@ fun <C, T> throwIfIsNull(
     propertyName: String
 ) {
     if (getter.apply(element) == null) {
-        val message: String = format(PROPERTY_NOT_FOUND_WITHOUT_ID, propertyName, element);
-        throw PropertyNotFoundException(message, Errors.PROPERTY_NOT_FOUND);
+        val message: String = format(PROPERTY_NOT_FOUND_WITHOUT_ID, propertyName, element)
+        throw PropertyNotFoundException(message, Errors.PROPERTY_NOT_FOUND)
     }
 }
 
@@ -130,7 +130,7 @@ fun <I, M> findOrThrow(
     request: (id: I) -> Optional<M>,
     mClass: Class<M>,
     id: I
-): M = request.invoke(id).orElseThrow{EntityNotFoundException(
+): M = request(id).orElseThrow{EntityNotFoundException(
     format(CAN_NOT_FOUND_ENTITY_WITH_ID, mClass.simpleName, id),
     ENTITY_NOT_FOUND
 )}
@@ -138,7 +138,7 @@ fun <I, M> findOrThrow(
 inline fun <I, reified M> findOrThrow(
     request: (id: I) -> Optional<M>,
     id: I
-): M = request.invoke(id).orElseThrow{EntityNotFoundException(
+): M = request(id).orElseThrow{EntityNotFoundException(
     format(CAN_NOT_FOUND_ENTITY_WITH_ID, M::class.java.simpleName, id),
     ENTITY_NOT_FOUND
 )}
@@ -147,7 +147,7 @@ suspend fun <I, M> findOrThrow(
     request: KSuspendFunction1<I, M?>,
     mClass: Class<M>,
     id: I
-): M? = request.invoke(id) ?: throw EntityNotFoundException(
+): M? = request(id) ?: throw EntityNotFoundException(
     format(CAN_NOT_FOUND_ENTITY_WITH_ID, mClass.simpleName, id),
     ENTITY_NOT_FOUND
 )
@@ -155,25 +155,25 @@ suspend fun <I, M> findOrThrow(
 suspend inline fun <I, reified M> singleOrError(
     request: (id: I) -> Mono<M>,
     id: I
-): M = request.invoke(id).awaitSingleOrNull() ?: throw entityNotFoundException<I, M>(id)
+): M = request(id).awaitSingleOrNull() ?: throw entityNotFoundException<I, M>(id)
 
 inline fun <I, reified M> entityNotFoundException(
     id: I
 ): EntityNotFoundException = EntityNotFoundException(format(CAN_NOT_FOUND_ENTITY_WITH_ID, M::class.java.simpleName, id), ENTITY_NOT_FOUND)
 
-fun <T> T.doAfterTerminate(consumer: KFunction1<T, Unit>): Mono<T> = Mono.just(this).doAfterTerminate{ consumer.invoke(this) }
+fun <T> T.doAfterTerminate(consumer: KFunction1<T, Unit>): Mono<T> = Mono.just(this).doAfterTerminate{ consumer(this) }
 
 suspend fun <T> Mono<out T>.doSeparately(consumer: (elem: T) -> Unit): T = this.flatMap { elem -> Mono.just(
     elem
-).doAfterTerminate{consumer.invoke(elem)}}.awaitSingle();
+).doAfterTerminate{ consumer(elem) }}.awaitSingle()
 
-fun LocalDate.isBetween(before: LocalDate, after: LocalDate): Boolean = this.isAfter(before) && this.isBefore(after);
+fun LocalDate.isBetween(before: LocalDate, after: LocalDate): Boolean = this.isAfter(before) && this.isBefore(after)
 
 fun LocalDate.isBetween(before: Instant, after: Instant): Boolean = this.isAfter(before.atZone(
     systemDefault()).toLocalDate()
 ) && this.isBefore(after.atZone(systemDefault()).toLocalDate())
 
-fun Instant.isBetween(before: Instant, after: Instant): Boolean = this.isAfter(before) && this.isBefore(after);
+fun Instant.isBetween(before: Instant, after: Instant): Boolean = this.isAfter(before) && this.isBefore(after)
 
 fun Instant.isBetween(before: LocalDate, after: LocalDate): Boolean = this.isAfter(
     before.atStartOfDay(systemDefault()).toInstant()
@@ -205,7 +205,7 @@ fun zodiacSign(dateOfBirth: LocalDate): ZodiacSign = when (dateOfBirth.monthValu
     10 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> LIBRA else -> SCORPIO }
     11 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> SCORPIO else -> SAGITTARIUS }
     12 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> SAGITTARIUS else -> CAPRICORN }
-    else -> throw UnprocessableEntityException(format(CAN_NOT_FOUND_ZODIAC_SIGN, dateOfBirth), ZODIAC_SIGN_NOT_FOUND);
+    else -> throw UnprocessableEntityException(format(CAN_NOT_FOUND_ZODIAC_SIGN, dateOfBirth), ZODIAC_SIGN_NOT_FOUND)
 }
 
 fun DataBuffer.byteForBuffer(): ByteArray {

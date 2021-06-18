@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.5.0</version>
+		<version>2.4.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>mj.carthy</groupId>
@@ -24,7 +24,7 @@
 
 	<properties>
 		<java.version>1.8</java.version>
-		<kotlin.version>1.4.31</kotlin.version>
+		<kotlin.version>1.5.10</kotlin.version>
 		<!--Libs-->
 		<commons-lang3.version>3.9</commons-lang3.version>
 		<passay.version>1.3.0</passay.version>
