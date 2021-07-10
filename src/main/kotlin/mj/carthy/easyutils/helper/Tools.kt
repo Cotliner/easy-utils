@@ -1,5 +1,9 @@
 package mj.carthy.easyutils.helper
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactive.awaitSingleOrNull
 import mj.carthy.easyutils.document.BaseDocument
@@ -10,9 +14,10 @@ import mj.carthy.easyutils.enums.ZodiacSign
 import mj.carthy.easyutils.enums.ZodiacSign.*
 import mj.carthy.easyutils.exception.EntityNotFoundException
 import mj.carthy.easyutils.exception.PropertyNotFoundException
-import mj.carthy.easyutils.exception.UnprocessableEntityException
+import mj.carthy.easyutils.exception.UnprocessedException
 import mj.carthy.easyutils.helper.Errors.Companion.ENTITY_NOT_FOUND
 import mj.carthy.easyutils.helper.Errors.Companion.ErrorCode
+import mj.carthy.easyutils.helper.Errors.Companion.PROPERTY_NOT_FOUND
 import mj.carthy.easyutils.helper.Errors.Companion.ZODIAC_SIGN_NOT_FOUND
 import mj.carthy.easyutils.model.ErrorDetails
 import mj.carthy.easyutils.model.PaginationResult
@@ -51,20 +56,20 @@ const val DATE_PATTERN = "dd/MM/yyyy"
 const val NUMBER_PATTERN = "0.00"
 
 /*ERRORS*/
-const val PROPERTY_NOT_FOUND = "The property %s is null in class %s with id %s"
-const val PROPERTY_NOT_FOUND_WITHOUT_ID = "The property %s is null in class %s"
-const val CAN_NOT_FOUND_ENTITY_WITH_ID = "Can not found %s with id : %s"
+const val PROPERTY_NOT_FOUND_ERROR = "The property %s is null in class %s with id %s"
+const val PROPERTY_NOT_FOUND_WITHOUT_ID_ERROR = "The property %s is null in class %s"
+const val CAN_NOT_FOUND_ENTITY_WITH_ID_ERROR = "Can not found %s with id : %s"
+const val CAN_NOT_FOUND_ZODIAC_SIGN_ERROR = "Can not found zodiac sign of date %s"
 
 const val SCALE_AFTER_DOT = 2
 
 /*Formatter*/
-val dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_PATTERN)
-val numberFormatter = DecimalFormat(NUMBER_PATTERN)
+val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern(DATE_PATTERN)
+val numberFormatter: DecimalFormat = DecimalFormat(NUMBER_PATTERN)
 
 val RANDOM = Random()
 const val CODE_GENERATOR_LOW_VALUE = 10000
 const val CODE_GENERATOR_HIGH_VALUE = 100000
-const val CAN_NOT_FOUND_ZODIAC_SIGN = "Can not found zodiac sign of date %s"
 
 fun error(ex: Exception, request: ServerHttpRequest, status: HttpStatus, code: ErrorCode): ErrorDetails = ErrorDetails(
     Instant.now(),
@@ -90,8 +95,8 @@ fun <C : BaseDocument<UUID>, T> throwIfIsNull(
     propertyName: String
 ) {
     if (getter.apply(element) == null) {
-        val message: String = format(PROPERTY_NOT_FOUND, propertyName, element.javaClass.simpleName, element.id)
-        throw PropertyNotFoundException(message, Errors.PROPERTY_NOT_FOUND)
+        val message: String = format(PROPERTY_NOT_FOUND_ERROR, propertyName, element.javaClass.simpleName, element.id)
+        throw PropertyNotFoundException(PROPERTY_NOT_FOUND, message)
     }
 }
 
@@ -121,8 +126,8 @@ fun <C, T> throwIfIsNull(
     propertyName: String
 ) {
     if (getter.apply(element) == null) {
-        val message: String = format(PROPERTY_NOT_FOUND_WITHOUT_ID, propertyName, element)
-        throw PropertyNotFoundException(message, Errors.PROPERTY_NOT_FOUND)
+        val message: String = format(PROPERTY_NOT_FOUND_WITHOUT_ID_ERROR, propertyName, element)
+        throw PropertyNotFoundException(PROPERTY_NOT_FOUND, message)
     }
 }
 
@@ -131,16 +136,16 @@ fun <I, M> findOrThrow(
     mClass: Class<M>,
     id: I
 ): M = request(id).orElseThrow{EntityNotFoundException(
-    format(CAN_NOT_FOUND_ENTITY_WITH_ID, mClass.simpleName, id),
-    ENTITY_NOT_FOUND
+    ENTITY_NOT_FOUND,
+    format(CAN_NOT_FOUND_ENTITY_WITH_ID_ERROR, mClass.simpleName, id)
 )}
 
 inline fun <I, reified M> findOrThrow(
     request: (id: I) -> Optional<M>,
     id: I
 ): M = request(id).orElseThrow{EntityNotFoundException(
-    format(CAN_NOT_FOUND_ENTITY_WITH_ID, M::class.java.simpleName, id),
-    ENTITY_NOT_FOUND
+    ENTITY_NOT_FOUND,
+    format(CAN_NOT_FOUND_ENTITY_WITH_ID_ERROR, M::class.java.simpleName, id)
 )}
 
 suspend fun <I, M> findOrThrow(
@@ -148,8 +153,8 @@ suspend fun <I, M> findOrThrow(
     mClass: Class<M>,
     id: I
 ): M? = request(id) ?: throw EntityNotFoundException(
-    format(CAN_NOT_FOUND_ENTITY_WITH_ID, mClass.simpleName, id),
-    ENTITY_NOT_FOUND
+    ENTITY_NOT_FOUND,
+    format(CAN_NOT_FOUND_ENTITY_WITH_ID_ERROR, mClass.simpleName, id)
 )
 
 suspend inline fun <I, reified M> singleOrError(
@@ -159,11 +164,11 @@ suspend inline fun <I, reified M> singleOrError(
 
 inline fun <I, reified M> entityNotFoundException(
     id: I
-): EntityNotFoundException = EntityNotFoundException(format(CAN_NOT_FOUND_ENTITY_WITH_ID, M::class.java.simpleName, id), ENTITY_NOT_FOUND)
+): EntityNotFoundException = EntityNotFoundException(ENTITY_NOT_FOUND, format(CAN_NOT_FOUND_ENTITY_WITH_ID_ERROR, M::class.java.simpleName, id))
 
-fun <T> T.doAfterTerminate(consumer: KFunction1<T, Unit>): Mono<T> = Mono.just(this).doAfterTerminate{ consumer(this) }
+fun <T> T.doAfterTerminate(consumer: KFunction1<T, Unit>): Mono<T> = Mono.justOrEmpty(this).doAfterTerminate{ consumer(this) }
 
-suspend fun <T> Mono<out T>.doSeparately(consumer: (elem: T) -> Unit): T = this.flatMap { elem -> Mono.just(
+suspend fun <T> Mono<out T>.doSeparately(consumer: (elem: T) -> Unit): T = this.flatMap { elem -> Mono.justOrEmpty(
     elem
 ).doAfterTerminate{ consumer(elem) }}.awaitSingle()
 
@@ -205,7 +210,7 @@ fun zodiacSign(dateOfBirth: LocalDate): ZodiacSign = when (dateOfBirth.monthValu
     10 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> LIBRA else -> SCORPIO }
     11 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> SCORPIO else -> SAGITTARIUS }
     12 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> SAGITTARIUS else -> CAPRICORN }
-    else -> throw UnprocessableEntityException(format(CAN_NOT_FOUND_ZODIAC_SIGN, dateOfBirth), ZODIAC_SIGN_NOT_FOUND)
+    else -> throw UnprocessedException(ZODIAC_SIGN_NOT_FOUND, format(CAN_NOT_FOUND_ZODIAC_SIGN_ERROR, dateOfBirth))
 }
 
 fun DataBuffer.byteForBuffer(): ByteArray {
@@ -248,3 +253,11 @@ fun Instant.moreThanHighteen(): Boolean = this.isBefore(Instant.now().minus(18, 
 fun LocalDate.moreThanHigthteen(): Boolean = this.isBefore(LocalDate.now().minusYears(18)) || this.isEqual(LocalDate.now().minusYears(18))
 
 fun Duration.isPositive() = this.seconds > 0
+
+fun <T> Channel<T>.consumeWith(
+    consumer: (it: T) -> Unit
+): Channel<T> {
+    val channel = this
+    GlobalScope.launch { channel.consumeEach(consumer::invoke) }
+    return channel
+}
