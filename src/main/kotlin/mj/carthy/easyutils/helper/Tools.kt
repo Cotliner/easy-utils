@@ -184,9 +184,9 @@ fun Instant.isBetween(before: LocalDate, after: LocalDate): Boolean = this.isAft
     before.atStartOfDay(systemDefault()).toInstant()
 ) && this.isBefore(after.atStartOfDay(systemDefault()).toInstant())
 
-fun Number.format(scaleValue: Number = SCALE_AFTER_DOT): String = BigDecimal(this.toString()).setScale(scaleValue.toInt(), HALF_EVEN).toString()
+fun Number.format(scaleValue: Number = SCALE_AFTER_DOT): String = BigDecimal(this.string).setScale(scaleValue.toInt(), HALF_EVEN).string
 
-fun codeGenerator(): String = (RANDOM.nextInt(CODE_GENERATOR_HIGH_VALUE - CODE_GENERATOR_LOW_VALUE) + CODE_GENERATOR_LOW_VALUE).toString()
+fun codeGenerator(): String = (RANDOM.nextInt(CODE_GENERATOR_HIGH_VALUE - CODE_GENERATOR_LOW_VALUE) + CODE_GENERATOR_LOW_VALUE).string
 
 fun <T> Collection<T>.paginationResult(page: Number, size: Number): PaginationResult<T> = PaginationResult(this, page, size, this.size)
 
@@ -231,7 +231,7 @@ fun Sex.inversed(): Sex = when(this) {
     FEMALE -> MALE
 }
 
-operator fun Number.invoke(): BigDecimal = this.toString().toBigDecimal()
+operator fun Number.invoke(): BigDecimal = this.string.toBigDecimal()
 operator fun String.invoke(): BigDecimal = this.toBigDecimal()
 operator fun BigDecimal.invoke(): String = this.toPlainString()
 
@@ -241,7 +241,7 @@ fun <K: Comparable<K>, V> MutableMap<K, V>.maxByKey(): V? = this.maxByOrNull { i
 
 fun <K, V: Comparable<V>> MutableMap<K, V>.maxByValue(): V? = this.maxByOrNull { it.value }?.value
 
-suspend fun <T> Flux<T>.toSet() = this.collect(Collectors.toSet()).awaitSingle()
+suspend fun <T> Flux<T>.toSet(): Set<T> = this.collect(Collectors.toSet()).awaitSingle()
 
 fun <K, V> MutableMap<K, V>.putIfIsAbsent(key: K, value: V): V {
     this[key] = value
@@ -261,3 +261,5 @@ fun <T> Channel<T>.consumeWith(
     GlobalScope.launch { channel.consumeEach(consumer::invoke) }
     return channel
 }
+
+val Any.string: String get() = this.toString()
