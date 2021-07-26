@@ -1,5 +1,6 @@
 package mj.carthy.easyutils.helper
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
@@ -261,5 +262,7 @@ fun <T> Channel<T>.consumeWith(
     GlobalScope.launch { channel.consumeEach(consumer::invoke) }
     return channel
 }
+
+inline fun <reified T> ObjectMapper.convert(json: String) = this.readValue(json, T::class.java)
 
 val Any.string: String get() = this.toString()
