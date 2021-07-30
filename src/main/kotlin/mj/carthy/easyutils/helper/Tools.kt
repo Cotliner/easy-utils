@@ -8,9 +8,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactive.awaitSingleOrNull
 import mj.carthy.easyutils.document.BaseDocument
-import mj.carthy.easyutils.enums.Sex
-import mj.carthy.easyutils.enums.Sex.FEMALE
-import mj.carthy.easyutils.enums.Sex.MALE
 import mj.carthy.easyutils.enums.ZodiacSign
 import mj.carthy.easyutils.enums.ZodiacSign.*
 import mj.carthy.easyutils.exception.EntityNotFoundException
@@ -50,7 +47,6 @@ import java.util.stream.Collectors
 import java.util.stream.Stream
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KSuspendFunction1
-import kotlin.streams.toList
 
 /*PATTERN*/
 const val DATE_PATTERN = "dd/MM/yyyy"
@@ -191,9 +187,6 @@ fun codeGenerator(): String = (RANDOM.nextInt(CODE_GENERATOR_HIGH_VALUE - CODE_G
 
 fun <T> Collection<T>.paginationResult(page: Number, size: Number): PaginationResult<T> = PaginationResult(this, page, size, this.size)
 
-fun <T> Stream<T>.toSet(): Set<T> = this.toList().toSet()
-fun <T> Stream<T>.toMutableSet(): MutableSet<T> = this.toList().toMutableSet()
-
 fun <ID, T: BaseDocument<ID>> Flux<T>.collectById(): Mono<MutableMap<ID?, T>> = this.collectMap(Function(BaseDocument<ID>::id), identity())
 
 fun <ID, T: BaseDocument<ID>> Collection<T>.collectById(): Map<ID?, T> = this.associateBy { it.id }
@@ -226,11 +219,6 @@ fun Flux<FilePart>.bytes(): Flux<ByteArray> = this.flatMap(FilePart::bytes)
 fun Mono<FilePart>.bytes(): Mono<ByteArray> = this.flatMap(FilePart::bytes)
 
 fun FilePart.bytes(): Mono<ByteArray> = this.content().map(DataBuffer::byteForBuffer).reduce(ArrayUtils::addAll)
-
-fun Sex.inversed(): Sex = when(this) {
-    MALE -> FEMALE
-    FEMALE -> MALE
-}
 
 operator fun Number.invoke(): BigDecimal = this.string.toBigDecimal()
 operator fun String.invoke(): BigDecimal = this.toBigDecimal()
