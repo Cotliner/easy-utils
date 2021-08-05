@@ -220,10 +220,6 @@ fun Mono<FilePart>.bytes(): Mono<ByteArray> = this.flatMap(FilePart::bytes)
 
 fun FilePart.bytes(): Mono<ByteArray> = this.content().map(DataBuffer::byteForBuffer).reduce(ArrayUtils::addAll)
 
-operator fun Number.invoke(): BigDecimal = this.string.toBigDecimal()
-operator fun String.invoke(): BigDecimal = this.toBigDecimal()
-operator fun BigDecimal.invoke(): String = this.toPlainString()
-
 fun BigDecimal.isPositive(): Boolean = this > BigDecimal.ZERO
 
 fun <K: Comparable<K>, V> MutableMap<K, V>.maxByKey(): V? = this.maxByOrNull { it.key }?.value
@@ -253,4 +249,10 @@ fun <T> Channel<T>.consumeWith(
 
 inline fun <reified T> ObjectMapper.convert(json: String) = this.readValue(json, T::class.java)
 
+operator fun Number.invoke(): BigDecimal = this.string.toBigDecimal()
+operator fun String.invoke(): BigDecimal = this.toBigDecimal()
+operator fun BigDecimal.invoke(): String = this.toPlainString()
+operator fun String.invoke(vararg args: Any): String = String.format(this, *args)
+
 val Any.string: String get() = this.toString()
+val String.uuid: UUID get() = UUID.fromString(this)

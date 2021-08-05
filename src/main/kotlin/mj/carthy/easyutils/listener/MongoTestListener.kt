@@ -13,19 +13,22 @@ import kotlin.reflect.KClass
 
 class MongoTestListener: AbstractTestExecutionListener() {
 
-    @Autowired private var mongoTemplate: ReactiveMongoTemplate? = null
-    private var classesToClear: Array<KClass<*>>? = null
+    private lateinit var mongoTemplate: ReactiveMongoTemplate
+    private lateinit var classesToClear: Array<KClass<*>>
 
-    override fun beforeTestClass(testContext: TestContext) {
-        testContext.applicationContext.autowireCapableBeanFactory.autowireBean(this)
-        classesToClear = getMergedAnnotation(testContext.testClass, NoSqlConfig::class.java)?.classes!!
+    override fun prepareTestInstance(testContext: TestContext) {
+        super.prepareTestInstance(testContext)
+        mongoTemplate = testContext.applicationContext.getBean(ReactiveMongoTemplate::class.java)
+        classesToClear = getMergedAnnotation(testContext.testClass, NoSqlConfig::class.java)?.classes ?: emptyArray()
     }
 
-    override fun afterTestMethod(testContext: TestContext) {
-        val n1ql: NoSql? = getMergedAnnotation(testContext.testMethod, NoSql::class.java)
-        if (n1ql == null) classesToClear!!.forEach { cleanCollection(it) } /*DELETE CLASS DATA*/
-        else if (n1ql.clearAfter) classesToClear!!.forEach { cleanCollection(it) } /*DELETE CLASS DATA*/
+    override fun afterTestMethod(testContext: TestContext) = with(getMergedAnnotation(
+      testContext.testMethod,
+      NoSql::class.java
+    )) {
+        if (this == null) classesToClear.forEach { cleanCollection(it) } /* DELETE CLASS DATA */
+        else if (this.clearAfter) classesToClear.forEach { cleanCollection(it) } /* DELETE CLASS DATA */
     }
 
-    private fun cleanCollection(it: KClass<*>): Unit = runBlocking { mongoTemplate!!.dropCollection(it.java).awaitSingleOrNull() }
+    private fun cleanCollection(it: KClass<*>): Unit = runBlocking { mongoTemplate.dropCollection(it.java).awaitSingleOrNull() }
 }
