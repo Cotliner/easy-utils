@@ -14,6 +14,7 @@ open class Errors {
         @JvmField val PROPERTY_NOT_FOUND: ErrorCode = ErrorCode("PROPERTY_NOT_FOUND")
         @JvmField val SERVER_ERROR: ErrorCode = ErrorCode("SERVER_ERROR")
         @JvmField val VALIDATION_ERROR: ErrorCode = ErrorCode("VALIDATION_ERROR")
+        @JvmField val AUTHENTIFICATION_DENIED: ErrorCode = ErrorCode("AUTHENTIFICATION_DENIED")
         @JvmField val ZODIAC_SIGN_NOT_FOUND: ErrorCode = ErrorCode("ZODIAC_SIGN_NOT_FOUND")
     }
 

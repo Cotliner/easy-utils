@@ -237,8 +237,6 @@ fun Instant.moreThanHighteen(): Boolean = this.isBefore(Instant.now().minus(18, 
 
 fun LocalDate.moreThanHigthteen(): Boolean = this.isBefore(LocalDate.now().minusYears(18)) || this.isEqual(LocalDate.now().minusYears(18))
 
-fun Duration.isPositive() = this.seconds > 0
-
 fun <T> Channel<T>.consumeWith(
     consumer: (it: T) -> Unit
 ): Channel<T> {
@@ -256,3 +254,6 @@ operator fun String.invoke(vararg args: Any): String = String.format(this, *args
 
 val Any.string: String get() = this.toString()
 val String.uuid: UUID get() = UUID.fromString(this)
+val Duration.isPositive get() = this.seconds > 0
+val Instant.isPositive get() = this.isAfter(Instant.now())
+val Instant.isNegative get() = this.isBefore(Instant.now())

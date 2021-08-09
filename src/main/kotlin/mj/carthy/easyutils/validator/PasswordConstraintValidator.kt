@@ -34,7 +34,7 @@ class PasswordConstraintValidator: ConstraintValidator<Password, String> {
     }
 
     override fun isValid(password: String, context: ConstraintValidatorContext): Boolean {
-        val validator: PasswordValidator = PasswordValidator(mutableListOf(
+        val validator = PasswordValidator(mutableListOf(
                 // at least 8 characters
                 LengthRule(MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH),
                 // at least one upper-case character
@@ -55,11 +55,11 @@ class PasswordConstraintValidator: ConstraintValidator<Password, String> {
 
         if (result.isValid) return TRUE
 
-        val messages: List<String> = validator.getMessages(result);
+        val messages: List<String> = validator.getMessages(result)
         val messageTemplate: String = StringUtils.joinWith(DELIMITER, messages)
-        context.buildConstraintViolationWithTemplate(messageTemplate)
-                .addConstraintViolation()
-                .disableDefaultConstraintViolation()
+
+        context.buildConstraintViolationWithTemplate(messageTemplate).addConstraintViolation().disableDefaultConstraintViolation()
+
         return FALSE
     }
 }
