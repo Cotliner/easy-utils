@@ -26,6 +26,9 @@ import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.http.server.reactive.ServerHttpRequest
+import org.springframework.security.config.web.server.ServerHttpSecurity
+import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec
+import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec.Access
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.lang.String.format
@@ -246,6 +249,11 @@ fun <T> Channel<T>.consumeWith(
 }
 
 inline fun <reified T> ObjectMapper.convert(json: String) = this.readValue(json, T::class.java)
+
+fun AuthorizeExchangeSpec.emptiablePathMatchers(
+  vararg antPatterns: String,
+  access: (Access) -> AuthorizeExchangeSpec = Access::permitAll
+): AuthorizeExchangeSpec = if (antPatterns.isEmpty()) this else access( this.pathMatchers(*antPatterns) )
 
 operator fun Number.invoke(): BigDecimal = this.string.toBigDecimal()
 operator fun String.invoke(): BigDecimal = this.toBigDecimal()
