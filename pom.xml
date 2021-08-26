@@ -25,12 +25,12 @@
 	<properties>
 		<java.version>1.8</java.version>
 		<kotlin.version>1.5.10</kotlin.version>
-		<!--Libs-->
-		<commons-lang3.version>3.9</commons-lang3.version>
+		<!--LIBRARIES-->
 		<passay.version>1.3.0</passay.version>
 		<com.google.guava>r03</com.google.guava>
+		<commons-lang3.version>3.12.0</commons-lang3.version>
 		<commons-beanutils.version>1.9.4</commons-beanutils.version>
-		<!--Test-->
+		<!--TEST-->
 		<spring-test.version>5.2.3.RELEASE</spring-test.version>
 	</properties>
 
@@ -92,7 +92,7 @@
 			<artifactId>guava-annotations</artifactId>
 			<version>${com.google.guava}</version>
 		</dependency>
-		<!--Test-->
+		<!--TEST-->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
@@ -125,7 +125,7 @@
 		<sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
 		<testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
 		<plugins>
-			<!--CreateJar-->
+			<!--JAR-CREATOR-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>

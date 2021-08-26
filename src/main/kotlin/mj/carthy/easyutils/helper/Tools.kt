@@ -26,7 +26,6 @@ import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.http.server.reactive.ServerHttpRequest
-import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec
 import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec.Access
 import reactor.core.publisher.Flux
@@ -47,7 +46,6 @@ import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Function.identity
 import java.util.stream.Collectors
-import java.util.stream.Stream
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KSuspendFunction1
 
@@ -161,6 +159,11 @@ suspend inline fun <I, reified M> singleOrError(
     request: (id: I) -> Mono<M>,
     id: I
 ): M = request(id).awaitSingleOrNull() ?: throw entityNotFoundException<I, M>(id)
+
+suspend inline fun <I, reified M> singleOrError(
+  request: suspend (id: I) -> M?,
+  id: I
+): M = request(id) ?: throw entityNotFoundException<I, M>(id)
 
 inline fun <I, reified M> entityNotFoundException(
     id: I
