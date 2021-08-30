@@ -30,6 +30,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity.Authori
 import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec.Access
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.publisher.Mono.justOrEmpty
 import java.lang.String.format
 import java.math.BigDecimal
 import java.math.RoundingMode.HALF_EVEN
@@ -70,94 +71,92 @@ const val CODE_GENERATOR_LOW_VALUE = 10000
 const val CODE_GENERATOR_HIGH_VALUE = 100000
 
 fun error(ex: Exception, request: ServerHttpRequest, status: HttpStatus, code: ErrorCode): ErrorDetails = ErrorDetails(
-    Instant.now(),
-    getMessage(ex),
-    request.uri.rawPath,
-    status,
-    status.value(),
-    code
+  Instant.now(),
+  getMessage(ex),
+  request.uri.rawPath,
+  status,
+  status.value(),
+  code
 )
 
 fun error(message: String, request: ServerHttpRequest, status: HttpStatus, code: ErrorCode): ErrorDetails = ErrorDetails(
-    Instant.now(),
-    message,
-    request.uri.rawPath,
-    status,
-    status.value(),
-    code
+  Instant.now(),
+  message,
+  request.uri.rawPath,
+  status,
+  status.value(),
+  code
 )
 
 fun <C : BaseDocument<UUID>, T> throwIfIsNull(
-    element: C,
-    getter: Function<C, T>,
-    propertyName: String
+  element: C,
+  getter: Function<C, T>,
+  propertyName: String
 ) {
-    if (getter.apply(element) == null) {
-        val message: String = format(PROPERTY_NOT_FOUND_ERROR, propertyName, element.javaClass.simpleName, element.id)
-        throw PropertyNotFoundException(PROPERTY_NOT_FOUND, message)
-    }
+  if (getter.apply(element) == null) {
+    val message: String = format(PROPERTY_NOT_FOUND_ERROR, propertyName, element.javaClass.simpleName, element.id)
+    throw PropertyNotFoundException(PROPERTY_NOT_FOUND, message)
+  }
 }
 
 fun <T> setIfIsNonNull(setter: Consumer<T>, valueToSet: T) {
-    if (valueToSet != null) { setter.accept(valueToSet) }
+  if (valueToSet != null) { setter.accept(valueToSet) }
 }
 
 fun <C, T> setIfIsNonNull(
-    mainSetter: Consumer<C>,
-    element: C,
-    cClass: Class<C>,
-    setter: BiConsumer<C, T>,
-    valueToSet: T
-) {
-    if (valueToSet != null) {
-        val c: C = createOrGet(element, cClass)
-        setter.accept(c, valueToSet)
-        mainSetter.accept(c)
-    }
+  mainSetter: Consumer<C>,
+  element: C,
+  cClass: Class<C>,
+  setter: BiConsumer<C, T>,
+  valueToSet: T
+): T? = valueToSet.takeIf { it != null }.also {
+  val c: C = createOrGet(element, cClass)
+  setter.accept(c, valueToSet)
+  mainSetter.accept(c)
 }
 
 fun <T> createOrGet(element: T, tClass: Class<T>): T = element ?: tClass.getDeclaredConstructor().newInstance()
 
 fun <C, T> throwIfIsNull(
-    element: C,
-    getter: Function<C, T>,
-    propertyName: String
+  element: C,
+  getter: Function<C, T>,
+  propertyName: String
 ) {
-    if (getter.apply(element) == null) {
-        val message: String = format(PROPERTY_NOT_FOUND_WITHOUT_ID_ERROR, propertyName, element)
-        throw PropertyNotFoundException(PROPERTY_NOT_FOUND, message)
-    }
+  if (getter.apply(element) == null) {
+    val message: String = format(PROPERTY_NOT_FOUND_WITHOUT_ID_ERROR, propertyName, element)
+    throw PropertyNotFoundException(PROPERTY_NOT_FOUND, message)
+  }
 }
 
 fun <I, M> findOrThrow(
-    request: (id: I) -> Optional<M>,
-    mClass: Class<M>,
-    id: I
+  request: (id: I) -> Optional<M>,
+  mClass: Class<M>,
+  id: I
 ): M = request(id).orElseThrow{EntityNotFoundException(
-    ENTITY_NOT_FOUND,
-    format(CAN_NOT_FOUND_ENTITY_WITH_ID_ERROR, mClass.simpleName, id)
+  ENTITY_NOT_FOUND,
+  format(CAN_NOT_FOUND_ENTITY_WITH_ID_ERROR, mClass.simpleName, id)
 )}
 
 inline fun <I, reified M> findOrThrow(
-    request: (id: I) -> Optional<M>,
-    id: I
+  request: (id: I) -> Optional<M>,
+  id: I
 ): M = request(id).orElseThrow{EntityNotFoundException(
-    ENTITY_NOT_FOUND,
-    format(CAN_NOT_FOUND_ENTITY_WITH_ID_ERROR, M::class.java.simpleName, id)
+  ENTITY_NOT_FOUND,
+  format(CAN_NOT_FOUND_ENTITY_WITH_ID_ERROR, M::class.java.simpleName, id)
 )}
 
 suspend fun <I, M> findOrThrow(
-    request: KSuspendFunction1<I, M?>,
-    mClass: Class<M>,
-    id: I
+  request: KSuspendFunction1<I, M?>,
+  mClass: Class<M>,
+  id: I
 ): M? = request(id) ?: throw EntityNotFoundException(
-    ENTITY_NOT_FOUND,
-    format(CAN_NOT_FOUND_ENTITY_WITH_ID_ERROR, mClass.simpleName, id)
+  ENTITY_NOT_FOUND,
+  format(CAN_NOT_FOUND_ENTITY_WITH_ID_ERROR, mClass.simpleName, id)
 )
 
 suspend inline fun <I, reified M> singleOrError(
-    request: (id: I) -> Mono<M>,
-    id: I
+  request: (id: I) -> Mono<M>,
+  id: I
 ): M = request(id).awaitSingleOrNull() ?: throw entityNotFoundException<I, M>(id)
 
 suspend inline fun <I, reified M> singleOrError(
@@ -166,105 +165,105 @@ suspend inline fun <I, reified M> singleOrError(
 ): M = request(id) ?: throw entityNotFoundException<I, M>(id)
 
 inline fun <I, reified M> entityNotFoundException(
-    id: I
+  id: I
 ): EntityNotFoundException = EntityNotFoundException(ENTITY_NOT_FOUND, format(CAN_NOT_FOUND_ENTITY_WITH_ID_ERROR, M::class.java.simpleName, id))
 
-fun <T> T.doAfterTerminate(consumer: KFunction1<T, Unit>): Mono<T> = Mono.justOrEmpty(this).doAfterTerminate{ consumer(this) }
+fun <T> T.doAfterTerminate(consumer: KFunction1<T, Unit>): Mono<T> = justOrEmpty(this).doAfterTerminate{ consumer(this) }
 
-suspend fun <T> Mono<out T>.doSeparately(consumer: (elem: T) -> Unit): T = this.flatMap { elem -> Mono.justOrEmpty(
-    elem
+suspend fun <T> Mono<out T>.doSeparately(consumer: (elem: T) -> Unit): T = flatMap { elem -> justOrEmpty(
+  elem
 ).doAfterTerminate{ consumer(elem) }}.awaitSingle()
 
-fun LocalDate.isBetween(before: LocalDate, after: LocalDate): Boolean = this.isAfter(before) && this.isBefore(after)
+fun LocalDate.isBetween(before: LocalDate, after: LocalDate): Boolean = isAfter(before) && isBefore(after)
 
-fun LocalDate.isBetween(before: Instant, after: Instant): Boolean = this.isAfter(before.atZone(
-    systemDefault()).toLocalDate()
-) && this.isBefore(after.atZone(systemDefault()).toLocalDate())
+fun LocalDate.isBetween(before: Instant, after: Instant): Boolean = isAfter(before.atZone(
+  systemDefault()).toLocalDate()
+) && isBefore(after.atZone(systemDefault()).toLocalDate())
 
-fun Instant.isBetween(before: Instant, after: Instant): Boolean = this.isAfter(before) && this.isBefore(after)
+fun Instant.isBetween(before: Instant, after: Instant): Boolean = isAfter(before) && isBefore(after)
 
-fun Instant.isBetween(before: LocalDate, after: LocalDate): Boolean = this.isAfter(
-    before.atStartOfDay(systemDefault()).toInstant()
-) && this.isBefore(after.atStartOfDay(systemDefault()).toInstant())
+fun Instant.isBetween(before: LocalDate, after: LocalDate): Boolean = isAfter(
+  before.atStartOfDay(systemDefault()).toInstant()
+) && isBefore(after.atStartOfDay(systemDefault()).toInstant())
 
-fun Number.format(scaleValue: Number = SCALE_AFTER_DOT): String = BigDecimal(this.string).setScale(scaleValue.toInt(), HALF_EVEN).string
+fun Number.format(scaleValue: Number = SCALE_AFTER_DOT): String = BigDecimal(string).setScale(scaleValue.toInt(), HALF_EVEN).string
 
 fun codeGenerator(): String = (RANDOM.nextInt(CODE_GENERATOR_HIGH_VALUE - CODE_GENERATOR_LOW_VALUE) + CODE_GENERATOR_LOW_VALUE).string
 
-fun <T> Collection<T>.paginationResult(page: Number, size: Number): PaginationResult<T> = PaginationResult(this, page, size, this.size)
+fun <T> Collection<T>.paginationResult(page: Number, size: Number): PaginationResult<T> = PaginationResult(this, page, size, size)
 
-fun <ID, T: BaseDocument<ID>> Flux<T>.collectById(): Mono<MutableMap<ID?, T>> = this.collectMap(Function(BaseDocument<ID>::id), identity())
+fun <ID, T: BaseDocument<ID>> Flux<T>.collectById(): Mono<MutableMap<ID?, T>> = collectMap(Function(BaseDocument<ID>::id), identity())
 
-fun <ID, T: BaseDocument<ID>> Collection<T>.collectById(): Map<ID?, T> = this.associateBy { it.id }
+fun <ID, T: BaseDocument<ID>> Collection<T>.collectById(): Map<ID?, T> = associateBy { it.id }
 
 fun zodiacSign(dateOfBirth: LocalDate): ZodiacSign = when (dateOfBirth.monthValue) {
-    1 -> when (dateOfBirth.dayOfMonth) { in 1..20 -> CAPRICORN else -> AQUARIUS }
-    2 -> when (dateOfBirth.dayOfMonth) { in 1..18 -> AQUARIUS else -> PISCES }
-    3 -> when (dateOfBirth.dayOfMonth) { in 1..21 -> PISCES else -> ARIES }
-    4 -> when (dateOfBirth.dayOfMonth) { in 1..20 -> ARIES else -> TAURUS }
-    5 -> when (dateOfBirth.dayOfMonth) { in 1..21 -> TAURUS else -> GEMINI }
-    6 -> when (dateOfBirth.dayOfMonth) { in 1..21 -> GEMINI else -> CANCER }
-    7 -> when (dateOfBirth.dayOfMonth) { in 1..23 -> CANCER else -> LEO }
-    8 -> when (dateOfBirth.dayOfMonth) { in 1..23 -> LEO else -> VIRGO }
-    9 -> when (dateOfBirth.dayOfMonth) { in 1..23 -> VIRGO else -> LIBRA }
-    10 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> LIBRA else -> SCORPIO }
-    11 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> SCORPIO else -> SAGITTARIUS }
-    12 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> SAGITTARIUS else -> CAPRICORN }
-    else -> throw UnprocessedException(ZODIAC_SIGN_NOT_FOUND, format(CAN_NOT_FOUND_ZODIAC_SIGN_ERROR, dateOfBirth))
+  1 -> when (dateOfBirth.dayOfMonth) { in 1..20 -> CAPRICORN else -> AQUARIUS }
+  2 -> when (dateOfBirth.dayOfMonth) { in 1..18 -> AQUARIUS else -> PISCES }
+  3 -> when (dateOfBirth.dayOfMonth) { in 1..21 -> PISCES else -> ARIES }
+  4 -> when (dateOfBirth.dayOfMonth) { in 1..20 -> ARIES else -> TAURUS }
+  5 -> when (dateOfBirth.dayOfMonth) { in 1..21 -> TAURUS else -> GEMINI }
+  6 -> when (dateOfBirth.dayOfMonth) { in 1..21 -> GEMINI else -> CANCER }
+  7 -> when (dateOfBirth.dayOfMonth) { in 1..23 -> CANCER else -> LEO }
+  8 -> when (dateOfBirth.dayOfMonth) { in 1..23 -> LEO else -> VIRGO }
+  9 -> when (dateOfBirth.dayOfMonth) { in 1..23 -> VIRGO else -> LIBRA }
+  10 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> LIBRA else -> SCORPIO }
+  11 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> SCORPIO else -> SAGITTARIUS }
+  12 -> when (dateOfBirth.dayOfMonth) { in 1..22 -> SAGITTARIUS else -> CAPRICORN }
+  else -> throw UnprocessedException(ZODIAC_SIGN_NOT_FOUND, format(CAN_NOT_FOUND_ZODIAC_SIGN_ERROR, dateOfBirth))
 }
 
 fun DataBuffer.byteForBuffer(): ByteArray {
-    val bytes: ByteArray = byteArrayOf(this.readableByteCount().toByte())
-    this.read(bytes)
-    DataBufferUtils.release(this)
-    return bytes
+  val bytes: ByteArray = byteArrayOf(readableByteCount().toByte())
+  read(bytes)
+  DataBufferUtils.release(this)
+  return bytes
 }
 
-fun Flux<FilePart>.bytes(): Flux<ByteArray> = this.flatMap(FilePart::bytes)
+fun Flux<FilePart>.bytes(): Flux<ByteArray> = flatMap(FilePart::bytes)
 
-fun Mono<FilePart>.bytes(): Mono<ByteArray> = this.flatMap(FilePart::bytes)
+fun Mono<FilePart>.bytes(): Mono<ByteArray> = flatMap(FilePart::bytes)
 
-fun FilePart.bytes(): Mono<ByteArray> = this.content().map(DataBuffer::byteForBuffer).reduce(ArrayUtils::addAll)
+fun FilePart.bytes(): Mono<ByteArray> = content().map(DataBuffer::byteForBuffer).reduce(ArrayUtils::addAll)
 
 fun BigDecimal.isPositive(): Boolean = this > BigDecimal.ZERO
 
-fun <K: Comparable<K>, V> MutableMap<K, V>.maxByKey(): V? = this.maxByOrNull { it.key }?.value
+fun <K: Comparable<K>, V> MutableMap<K, V>.maxByKey(): V? = maxByOrNull { it.key }?.value
 
-fun <K, V: Comparable<V>> MutableMap<K, V>.maxByValue(): V? = this.maxByOrNull { it.value }?.value
+fun <K, V: Comparable<V>> MutableMap<K, V>.maxByValue(): V? = maxByOrNull { it.value }?.value
 
-suspend fun <T> Flux<T>.toSet(): Set<T> = this.collect(Collectors.toSet()).awaitSingle()
+suspend fun <T> Flux<T>.toSet(): Set<T> = collect(Collectors.toSet()).awaitSingle()
 
 fun <K, V> MutableMap<K, V>.putIfIsAbsent(key: K, value: V): V {
-    this[key] = value
-    return value
+  this[key] = value
+  return value
 }
 
-fun Instant.moreThanHighteen(): Boolean = this.isBefore(Instant.now().minus(18, YEARS)) || this.atZone(systemDefault()).toLocalDate().isEqual(LocalDate.now().minusYears(18))
+fun Instant.moreThanHighteen(): Boolean = isBefore(Instant.now().minus(18, YEARS)) || atZone(systemDefault()).toLocalDate().isEqual(LocalDate.now().minusYears(18))
 
-fun LocalDate.moreThanHigthteen(): Boolean = this.isBefore(LocalDate.now().minusYears(18)) || this.isEqual(LocalDate.now().minusYears(18))
+fun LocalDate.moreThanHigthteen(): Boolean = isBefore(LocalDate.now().minusYears(18)) || isEqual(LocalDate.now().minusYears(18))
 
 fun <T> Channel<T>.consumeWith(
-    consumer: (it: T) -> Unit
+  consumer: (it: T) -> Unit
 ): Channel<T> {
-    val channel = this
-    GlobalScope.launch { channel.consumeEach(consumer::invoke) }
-    return channel
+  val channel = this
+  GlobalScope.launch { channel.consumeEach(consumer::invoke) }
+  return channel
 }
 
-inline fun <reified T> ObjectMapper.convert(json: String) = this.readValue(json, T::class.java)
+inline fun <reified T> ObjectMapper.convert(json: String) = readValue(json, T::class.java)
 
 fun AuthorizeExchangeSpec.emptiablePathMatchers(
   vararg antPatterns: String,
   access: (Access) -> AuthorizeExchangeSpec = Access::permitAll
-): AuthorizeExchangeSpec = if (antPatterns.isEmpty()) this else access( this.pathMatchers(*antPatterns) )
+): AuthorizeExchangeSpec = if (antPatterns.isEmpty()) this else access(pathMatchers(*antPatterns))
 
-operator fun Number.invoke(): BigDecimal = this.string.toBigDecimal()
-operator fun String.invoke(): BigDecimal = this.toBigDecimal()
-operator fun BigDecimal.invoke(): String = this.toPlainString()
+operator fun Number.invoke(): BigDecimal = string.toBigDecimal()
+operator fun String.invoke(): BigDecimal = toBigDecimal()
+operator fun BigDecimal.invoke(): String = toPlainString()
 operator fun String.invoke(vararg args: Any): String = String.format(this, *args)
 
-val Any.string: String get() = this.toString()
+val Any.string: String get() = toString()
 val String.uuid: UUID get() = UUID.fromString(this)
-val Duration.isPositive get() = this.seconds > 0
-val Instant.isPositive get() = this.isAfter(Instant.now())
-val Instant.isNegative get() = this.isBefore(Instant.now())
+val Duration.isPositive get() = seconds > 0
+val Instant.isPositive get() = isAfter(Instant.now())
+val Instant.isNegative get() = isBefore(Instant.now())
