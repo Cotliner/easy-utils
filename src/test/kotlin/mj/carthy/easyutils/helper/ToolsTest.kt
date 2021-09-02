@@ -1,7 +1,9 @@
 package mj.carthy.easyutils.helper
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.date.shouldBeBefore
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -9,18 +11,19 @@ import kotlinx.coroutines.runBlocking
 import mj.carthy.easyutils.BaseUnitTest
 import mj.carthy.easyutils.document.BaseDocument
 import mj.carthy.easyutils.exception.EntityNotFoundException
-import mj.carthy.easyutils.exception.UnprocessedException
 import mj.carthy.easyutils.helper.Errors.Companion.ENTITY_NOT_FOUND
 import mj.carthy.easyutils.helper.Errors.Companion.VALIDATION_ERROR
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.lang.Boolean.FALSE
+import java.lang.Boolean.TRUE
 import java.time.Instant.now
 import java.time.LocalDate
 import java.util.*
 import kotlin.Exception
-import kotlin.reflect.KSuspendFunction1
 
 internal class ToolsTest: BaseUnitTest() {
 
@@ -149,5 +152,45 @@ internal class ToolsTest: BaseUnitTest() {
     /* THEN */
     code shouldBe ENTITY_NOT_FOUND
     message shouldBe "Can not found BaseDocument with id : $id"
+  }
+
+  @Test fun `should get set from flux`() {
+    /* GIVEN */
+    val document = BaseDocument("35d0be0d-4125-471d-a86a-9896c758effe".uuid)
+    /* WHEN */
+    val result: Set<BaseDocument<UUID>> = runBlocking { Flux.just(document, document).toSet() }
+    /* THEN */
+    result shouldContainExactlyInAnyOrder setOf(document)
+  }
+
+  @Test fun `should convert without known class`() {
+    /* GIVEN */
+    val mapper = ObjectMapper()
+    /* WHEN */
+    val result: BaseDocument<UUID> = mapper.convert("{\"id\":\"76751f68-cf97-43c2-a3cc-3f6867baa9e2\"}")
+    /* THEN */
+    result.id shouldBe "76751f68-cf97-43c2-a3cc-3f6867baa9e2"
+  }
+
+  @Test fun `should return TRUE when date is between`() {
+    /* GIVEN */
+    val before = LocalDate.of(1991, 10, 8)
+    val after = LocalDate.of(1991, 12, 8)
+    val date = LocalDate.of(1991, 11, 8)
+    /* WHEN */
+    val result: Boolean = date.isBetween(before, after)
+    /* THEN */
+    result shouldBe TRUE
+  }
+
+  @Test fun `should return FALSE when date is not between`() {
+    /* GIVEN */
+    val before = LocalDate.of(1991, 12, 8)
+    val after = LocalDate.of(1991, 10, 8)
+    val date = LocalDate.of(1991, 11, 8)
+    /* WHEN */
+    val result: Boolean = date.isBetween(before, after)
+    /* THEN */
+    result shouldBe FALSE
   }
 }
