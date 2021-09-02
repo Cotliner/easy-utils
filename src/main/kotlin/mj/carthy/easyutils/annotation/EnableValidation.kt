@@ -1,4 +1,4 @@
-package mj.carthy.easyutils
+package mj.carthy.easyutils.annotation
 
 import mj.carthy.easyutils.configuration.ValidatorConfig
 import org.springframework.context.annotation.Import
