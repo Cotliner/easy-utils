@@ -17,6 +17,7 @@ import mj.carthy.easyutils.exception.EntityNotFoundException
 import mj.carthy.easyutils.helper.Errors.Companion.ENTITY_NOT_FOUND
 import mj.carthy.easyutils.helper.Errors.Companion.VALIDATION_ERROR
 import mj.carthy.easyutils.model.PaginationResult
+import org.apache.commons.lang3.math.NumberUtils.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
@@ -31,15 +32,15 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.lang.Boolean.FALSE
 import java.lang.Boolean.TRUE
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.time.temporal.ChronoUnit.DAYS
 import java.time.temporal.ChronoUnit.MINUTES
 import java.util.*
 import java.util.stream.Stream
 import kotlin.Exception
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
 import kotlin.time.ExperimentalTime
 
 @TestInstance(PER_CLASS) internal class ToolsTest: BaseUnitTest() {
@@ -420,9 +421,9 @@ import kotlin.time.ExperimentalTime
   @ExperimentalTime
   @Test fun `should return TRUE when duration is positive`() {
     /* GIVEN */
-    val duration = Duration.days(1)
+    val duration = Duration.of(1, MINUTES)
     /* WHEN */
-    val result: Boolean = duration.isPositive()
+    val result: Boolean = duration.isPositive
     /* THEN */
     result shouldBe TRUE
   }
@@ -430,10 +431,46 @@ import kotlin.time.ExperimentalTime
   @ExperimentalTime
   @Test fun `should return FALSE when duration is negative`() {
     /* GIVEN */
-    val duration = java.time.Duration.of(-1, MINUTES)
+    val duration = Duration.of(-1, MINUTES)
     /* WHEN */
     val result: Boolean = duration.isPositive
     /* THEN */
     result shouldBe FALSE
+  }
+
+  @Test fun `should return TRUE when Instant after now`() {
+    /* GIVEN */
+    val date: Instant = Instant.now().plus(LONG_ONE, DAYS)
+    /* WHEN */
+    val result: Boolean = date.isPositive
+    /* THEN */
+    result shouldBe TRUE
+  }
+
+  @Test fun `should return FALSE when Instant before now`() {
+    /* GIVEN */
+    val date: Instant = Instant.now().plus(LONG_MINUS_ONE, DAYS)
+    /* WHEN */
+    val result: Boolean = date.isPositive
+    /* THEN */
+    result shouldBe FALSE
+  }
+
+  @Test fun `should return FALSE when Instant after now`() {
+    /* GIVEN */
+    val date: Instant = Instant.now().plus(LONG_ONE, DAYS)
+    /* WHEN */
+    val result: Boolean = date.isNegative
+    /* THEN */
+    result shouldBe FALSE
+  }
+
+  @Test fun `should return TRUE when Instant before now`() {
+    /* GIVEN */
+    val date: Instant = Instant.now().plus(LONG_MINUS_ONE, DAYS)
+    /* WHEN */
+    val result: Boolean = date.isNegative
+    /* THEN */
+    result shouldBe TRUE
   }
 }
