@@ -109,17 +109,14 @@ suspend fun <T> Flux<T>.toSet(): Set<T> = collect(Collectors.toSet()).awaitSingl
 inline fun <reified T> ObjectMapper.convert(json: String): T = readValue(json, T::class.java)
 
 /* CLASS EXTENSION: METHOD */
-fun LocalDate.isBetween(before: LocalDate, after: LocalDate): Boolean = isAfter(before) && isBefore(after)
-fun LocalDate.isBetween(before: Instant, after: Instant): Boolean = isAfter(before.atZone(systemDefault()).toLocalDate()) && isBefore(after.atZone(systemDefault()).toLocalDate())
+fun LocalDate.isBetween(before: LocalDate, after: LocalDate): Boolean = (isAfter(before) && isBefore(after)) || equals(before) || equals(after)
+fun Instant.isBetween(before: Instant, after: Instant): Boolean = (isAfter(before) && isBefore(after)) || equals(before) || equals(after)
 
 fun LocalDate.format(pattern: String = DATE_PATTERN): String = format(DateTimeFormatter.ofPattern(pattern))
 
-fun Instant.isBetween(before: Instant, after: Instant): Boolean = isAfter(before) && isBefore(after)
-fun Instant.isBetween(before: LocalDate, after: LocalDate): Boolean = isAfter(before.atStartOfDay(systemDefault()).toInstant()) && isBefore(after.atStartOfDay(systemDefault()).toInstant())
-
 fun Number.format(scaleValue: Number = SCALE_AFTER_DOT): String = BigDecimal(string).setScale(scaleValue.toInt(), HALF_EVEN).string
 
-fun AuthorizeExchangeSpec.emptiablePathMatchers(vararg antPatterns: String, access: (Access) -> AuthorizeExchangeSpec = Access::permitAll): AuthorizeExchangeSpec = if (antPatterns.isEmpty()) this else access(pathMatchers(*antPatterns))
+fun AuthorizeExchangeSpec.emptyAblePathMatchers(vararg antPatterns: String, access: (Access) -> AuthorizeExchangeSpec = Access::permitAll): AuthorizeExchangeSpec = if (antPatterns.isEmpty()) this else access(pathMatchers(*antPatterns))
 
 fun <T> Collection<T>.paginationResult(page: Number, size: Number): PaginationResult<T> = PaginationResult(this, page, size, size)
 
@@ -177,6 +174,9 @@ val LocalDate.zodiacSign get(): ZodiacSign = when (monthValue) {
   12 -> when (dayOfMonth) { in 1..22 -> SAGITTARIUS else -> CAPRICORN }
   else -> throw UnprocessedException(ZODIAC_SIGN_NOT_FOUND, CAN_NOT_FOUND_ZODIAC_SIGN_ERROR(/**/this))
 }
+
+val Instant.localDate get(): LocalDate = atZone(systemDefault()).toLocalDate()
+val LocalDate.instant get(): Instant = atStartOfDay(systemDefault()).toInstant()
 
 /* OPERATOR */
 operator fun Number.invoke(): BigDecimal = string.toBigDecimal()
