@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.date.shouldBeBefore
@@ -33,11 +32,15 @@ import reactor.core.publisher.Mono
 import java.lang.Boolean.FALSE
 import java.lang.Boolean.TRUE
 import java.time.Instant
-import java.time.Instant.now
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
+import java.time.temporal.ChronoUnit.MINUTES
 import java.util.*
 import java.util.stream.Stream
 import kotlin.Exception
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.ExperimentalTime
 
 @TestInstance(PER_CLASS) internal class ToolsTest: BaseUnitTest() {
 
@@ -60,7 +63,7 @@ import kotlin.Exception
     /* WHEN */
     val (timestamp, message, path, label, httpCode, code, fieldErrors) = error(exception, request, BAD_REQUEST, VALIDATION_ERROR)
     /* THEN */
-    timestamp shouldBeBefore now()
+    timestamp shouldBeBefore Instant.now()
     message shouldBe "Exception: $errorMessage"
     path shouldBe requestPath
     label shouldBe BAD_REQUEST
@@ -77,7 +80,7 @@ import kotlin.Exception
     /* WHEN */
     val (timestamp, message, path, label, httpCode, code, fieldErrors) = error(errorMessage, request, BAD_REQUEST, VALIDATION_ERROR)
     /* THEN */
-    timestamp shouldBeBefore now()
+    timestamp shouldBeBefore Instant.now()
     message shouldBe errorMessage
     path shouldBe requestPath
     label shouldBe BAD_REQUEST
@@ -322,5 +325,115 @@ import kotlin.Exception
     result.page shouldBe 0
     result.size shouldBe 1
     result.content shouldContainExactly documents
+  }
+
+  @Test fun `should return TRUE when Instant is more than eighteen years`() {
+    /* GIVEN */
+    val date: Instant = Instant.parse("1991-11-08T00:00:00.00Z")
+    /* WHEN */
+    val result: Boolean = date.moreThanEighteen
+    /* THEN */
+    result shouldBe TRUE
+  }
+
+  @Test fun `should return FALSE when Instant is not more than eighteen years`() {
+    /* GIVEN */
+    val date: Instant = Instant.now()
+    /* WHEN */
+    val result: Boolean = date.moreThanEighteen
+    /* THEN */
+    result shouldBe FALSE
+  }
+
+  @Test fun `should return TRUE when LocalDate is more than eighteen years`() {
+    /* GIVEN */
+    val date: LocalDate = LocalDate.of(1991, 11, 8)
+    /* WHEN */
+    val result: Boolean = date.moreThanEighteen
+    /* THEN */
+    result shouldBe TRUE
+  }
+
+  @Test fun `should return FALSE when LocalDate is not more than eighteen years`() {
+    /* GIVEN */
+    val date: LocalDate = LocalDate.now()
+    /* WHEN */
+    val result: Boolean = date.moreThanEighteen
+    /* THEN */
+    result shouldBe FALSE
+  }
+
+  @Test fun `should return TRUE if BigDecimal is positive`() {
+    /* GIVEN */
+    val number = "3.3".toBigDecimal()
+    /* WHEN */
+    val result: Boolean = number.isPositive
+    /* THEN */
+    result shouldBe TRUE
+  }
+
+  @Test fun `should return FALSE if BigDecimal is negative`() {
+    /* GIVEN */
+    val number = "-3.3".toBigDecimal()
+    /* WHEN */
+    val result: Boolean = number.isPositive
+    /* THEN */
+    result shouldBe FALSE
+  }
+
+  @Test fun `should found the max value`() {
+    /* GIVEN */
+    val map = mapOf("one" to 1, "two" to 2, "three" to 3, "four" to 4)
+    /* WHEN */
+    val result: Int? = map.maxByValue
+    /* THEN */
+    result shouldBe 4
+  }
+
+  @Test fun `should found the max key by value`() {
+    /* GIVEN */
+    val map = mapOf(1 to "one", 2 to "two", 3 to "three", 4 to "four")
+    /* WHEN */
+    val result: String? = map.maxByKey
+    /* THEN */
+    result shouldBe "four"
+  }
+
+  @Test fun `should give string`() {
+    /* GIVEN */
+    val one: Number = 1
+    /* WHEN */
+    val result: String = one.string
+    /* THEN */
+    result shouldBe "1"
+  }
+
+  @Test fun `should change string in uuid`() {
+    /* GIVEN */
+    val string = "b6cfe15f-79f6-4374-92b3-91da50b52e58"
+    /* WHEN*/
+    val result: UUID = string.uuid
+    /* THEN */
+    result shouldBe UUID.fromString(string)
+  }
+
+  @ExperimentalTime
+  @Test fun `should return TRUE when duration is positive`() {
+    /* GIVEN */
+    val duration = Duration.days(1)
+    /* WHEN */
+    val result: Boolean = duration.isPositive()
+    /* THEN */
+    result shouldBe TRUE
+  }
+
+  @ExperimentalTime
+  @Test fun `should return FALSE when duration is negative`() {
+    /* GIVEN */
+    val duration = java.time.Duration.of(-1, MINUTES)
+    /* WHEN */
+    val result: Boolean = duration.isPositive
+    /* THEN */
+    result shouldBe FALSE
   }
 }

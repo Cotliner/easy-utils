@@ -7,7 +7,6 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactive.awaitSingleOrNull
-import kotlinx.coroutines.reactor.mono
 import mj.carthy.easyutils.document.BaseDocument
 import mj.carthy.easyutils.enums.ZodiacSign
 import mj.carthy.easyutils.enums.ZodiacSign.*
@@ -29,7 +28,6 @@ import org.springframework.security.config.web.server.ServerHttpSecurity.Authori
 import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec.Access
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.publisher.Mono.justOrEmpty
 import reactor.kotlin.core.publisher.toMono
 import java.lang.String.format
 import java.math.BigDecimal
@@ -39,12 +37,10 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId.systemDefault
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit.YEARS
 import java.util.*
 import java.util.function.Function
 import java.util.function.Function.identity
 import java.util.stream.Collectors
-import kotlin.reflect.KFunction1
 
 /*PATTERN*/
 const val DATE_PATTERN = "dd/MM/yyyy"
@@ -124,11 +120,13 @@ fun <T> Channel<T>.consumeWith(consumer: (it: T) -> Unit): Channel<T> = this.als
 
 fun <K, V> MutableMap<K, V>.putIfIsAbsent(key: K, value: V): V { this[key] = value; return value }
 
-fun <T> T.doAfterTerminate(consumer: KFunction1<T, Unit>): Mono<T> = justOrEmpty(this).doAfterTerminate{ consumer(this) }
-
 /* CLASS EXTENSION: VALUES */
-val Instant.moreThanHighteen get(): Boolean = isBefore(Instant.now().minus(18, YEARS)) || atZone(systemDefault()).toLocalDate().isEqual(LocalDate.now().minusYears(18))
-val LocalDate.moreThanHigthteen get(): Boolean = isBefore(LocalDate.now().minusYears(18)) || isEqual(LocalDate.now().minusYears(18))
+val code get(): String = (Random().nextInt(CODE_GENERATOR_HIGH_VALUE - CODE_GENERATOR_LOW_VALUE) + CODE_GENERATOR_LOW_VALUE).string
+val eighteen: LocalDate get() = LocalDate.now().minusYears(18)
+
+val LocalDate.moreThanEighteen get(): Boolean = isBefore(eighteen) || isEqual(eighteen)
+val Instant.moreThanEighteen get(): Boolean = localDate.moreThanEighteen
+
 val DataBuffer.byteForBuffer get(): ByteArray {
   val bytes: ByteArray = byteArrayOf(readableByteCount().toByte())
   read(bytes)
@@ -141,8 +139,8 @@ val FilePart.bytes get(): Mono<ByteArray> = content().map(DataBuffer::byteForBuf
 
 val BigDecimal.isPositive get(): Boolean = this > BigDecimal.ZERO
 
-val <K, V: Comparable<V>> MutableMap<K, V>.maxByValue get(): V? = maxByOrNull { it.value }?.value
-val <K: Comparable<K>, V> MutableMap<K, V>.maxByKey get(): V? = maxByOrNull { it.key }?.value
+val <K, V: Comparable<V>> Map<K, V>.maxByValue get(): V? = maxByOrNull { it.value }?.value
+val <K: Comparable<K>, V> Map<K, V>.maxByKey get(): V? = maxByOrNull { it.key }?.value
 
 val Any.string: String get() = toString()
 val <T: Any> T.mono: Mono<T> get() = toMono()
@@ -153,8 +151,6 @@ val Duration.isPositive get() = seconds > 0
 
 val Instant.isPositive get() = isAfter(Instant.now())
 val Instant.isNegative get() = isBefore(Instant.now())
-
-val code get(): String = (Random().nextInt(CODE_GENERATOR_HIGH_VALUE - CODE_GENERATOR_LOW_VALUE) + CODE_GENERATOR_LOW_VALUE).string
 
 val <ID, T: BaseDocument<ID>> Flux<T>.collectById get(): Mono<MutableMap<ID?, T>> = collectMap(Function(BaseDocument<ID>::id), identity())
 val <ID, T: BaseDocument<ID>> Collection<T>.collectById get(): Map<ID?, T> = associateBy { it.id }
