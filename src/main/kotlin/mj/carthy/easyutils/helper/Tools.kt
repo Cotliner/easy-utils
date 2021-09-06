@@ -1,6 +1,7 @@
 package mj.carthy.easyutils.helper
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.gson.Gson
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
@@ -19,6 +20,7 @@ import mj.carthy.easyutils.model.ErrorDetails
 import mj.carthy.easyutils.model.PaginationResult
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.exception.ExceptionUtils.getMessage
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpStatus
@@ -103,6 +105,7 @@ suspend fun <T> Flux<T>.toSet(): Set<T> = collect(Collectors.toSet()).awaitSingl
 
 /* CLASS EXTENSION: INLINE METHOD */
 inline fun <reified T> ObjectMapper.convert(json: String): T = readValue(json, T::class.java)
+inline fun <reified T> Gson.makeFrom(record: ConsumerRecord<String, Map<String, String>>): T = fromJson(toJsonTree(record.value()), T::class.java)
 
 /* CLASS EXTENSION: METHOD */
 fun LocalDate.isBetween(before: LocalDate, after: LocalDate): Boolean = (isAfter(before) && isBefore(after)) || equals(before) || equals(after)
@@ -116,6 +119,7 @@ fun AuthorizeExchangeSpec.emptyAblePathMatchers(vararg antPatterns: String, acce
 
 fun <T> Collection<T>.paginationResult(page: Number, size: Number): PaginationResult<T> = PaginationResult(this, page, size, size)
 
+fun <T> T.consume(consumer: suspend (it: T) -> Unit): Unit = this.run { GlobalScope.launch { consumer.invoke(this@consume) } }
 fun <T> Channel<T>.consumeWith(consumer: (it: T) -> Unit): Channel<T> = this.also { GlobalScope.launch { consumeEach(consumer::invoke) } }
 
 fun <K, V> MutableMap<K, V>.putIfIsAbsent(key: K, value: V): V { this[key] = value; return value }
@@ -152,7 +156,7 @@ val Duration.isPositive get() = seconds > 0
 val Instant.isPositive get() = isAfter(Instant.now())
 val Instant.isNegative get() = isBefore(Instant.now())
 
-val <ID, T: BaseDocument<ID>> Flux<T>.collectById get(): Mono<MutableMap<ID?, T>> = collectMap(Function(BaseDocument<ID>::id), identity())
+val <ID, T: BaseDocument<ID>> Flux<T>.collectById get(): Mono<Map<ID?, T>> = collectMap(Function(BaseDocument<ID>::id), identity())
 val <ID, T: BaseDocument<ID>> Collection<T>.collectById get(): Map<ID?, T> = associateBy { it.id }
 
 val LocalDate.zodiacSign get(): ZodiacSign = when (monthValue) {
