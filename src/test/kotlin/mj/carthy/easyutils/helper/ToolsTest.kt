@@ -15,12 +15,10 @@ import kotlinx.coroutines.runBlocking
 import mj.carthy.easyutils.BaseUnitTest
 import mj.carthy.easyutils.document.BaseDocument
 import mj.carthy.easyutils.enums.ZodiacSign
-import mj.carthy.easyutils.enums.ZodiacSign.*
 import mj.carthy.easyutils.exception.EntityNotFoundException
 import mj.carthy.easyutils.helper.Errors.Companion.ENTITY_NOT_FOUND
 import mj.carthy.easyutils.helper.Errors.Companion.VALIDATION_ERROR
 import mj.carthy.easyutils.model.PaginationResult
-import org.apache.commons.lang3.math.NumberUtils.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
@@ -41,10 +39,25 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit.DAYS
 import java.time.temporal.ChronoUnit.MINUTES
-import java.util.*
 import java.util.stream.Stream
 import kotlin.Exception
 import kotlin.time.ExperimentalTime
+import mj.carthy.easyutils.enums.ZodiacSign.AQUARIUS
+import mj.carthy.easyutils.enums.ZodiacSign.ARIES
+import mj.carthy.easyutils.enums.ZodiacSign.CANCER
+import mj.carthy.easyutils.enums.ZodiacSign.CAPRICORN
+import mj.carthy.easyutils.enums.ZodiacSign.GEMINI
+import mj.carthy.easyutils.enums.ZodiacSign.LEO
+import mj.carthy.easyutils.enums.ZodiacSign.LIBRA
+import mj.carthy.easyutils.enums.ZodiacSign.PISCES
+import mj.carthy.easyutils.enums.ZodiacSign.SAGITTARIUS
+import mj.carthy.easyutils.enums.ZodiacSign.SCORPIO
+import mj.carthy.easyutils.enums.ZodiacSign.TAURUS
+import mj.carthy.easyutils.enums.ZodiacSign.VIRGO
+import org.apache.commons.lang3.math.NumberUtils.LONG_MINUS_ONE
+import org.apache.commons.lang3.math.NumberUtils.LONG_ONE
+import java.util.Optional
+import java.util.UUID
 
 @TestInstance(PER_CLASS) internal class ToolsTest: BaseUnitTest() {
 

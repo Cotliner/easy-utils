@@ -2,7 +2,6 @@ package mj.carthy.easyutils.validator
 
 import mj.carthy.easyutils.annotation.Password
 import org.apache.commons.lang3.StringUtils
-import org.passay.*
 import org.passay.dictionary.WordListDictionary
 import org.passay.dictionary.WordLists.createFromReader
 import org.passay.dictionary.sort.ArraysSort
@@ -12,6 +11,14 @@ import java.lang.Boolean.TRUE
 import java.util.Collections.singleton
 import javax.validation.ConstraintValidator
 import javax.validation.ConstraintValidatorContext
+import org.passay.CharacterRule
+import org.passay.DictionaryRule
+import org.passay.EnglishCharacterData
+import org.passay.LengthRule
+import org.passay.PasswordData
+import org.passay.PasswordValidator
+import org.passay.RuleResult
+import org.passay.WhitespaceRule
 
 class PasswordConstraintValidator: ConstraintValidator<Password, String> {
 
