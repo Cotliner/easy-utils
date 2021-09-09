@@ -10,9 +10,7 @@ import io.kotest.matchers.date.shouldBeBefore
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.reactive.awaitSingle
-import kotlinx.coroutines.reactor.flux
 import kotlinx.coroutines.runBlocking
 import mj.carthy.easyutils.BaseUnitTest
 import mj.carthy.easyutils.document.BaseDocument
@@ -37,6 +35,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.lang.Boolean.FALSE
 import java.lang.Boolean.TRUE
+import java.math.BigDecimal
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -502,6 +501,43 @@ import kotlin.time.ExperimentalTime
     val result: Map<UUID?, BaseDocument<UUID>> = documents.collectById
     /* THEN */
     result.keys shouldContainExactlyInAnyOrder listOf(idOne, idTwo)
+  }
+
+  @Test fun `should convert Number to BigDecimal`() {
+    /* GIVEN */
+    val number: Number = 1.991
+    /* WHEN */
+    val result = number()
+    /* THEN */
+    result::class shouldBe BigDecimal::class
+  }
+
+  @Test fun `should convert String to BigDecimal`() {
+    /* GIVEN */
+    val number = "1.1991"
+    /* WHEN */
+    val result = number()
+    /* THEN */
+    result::class shouldBe BigDecimal::class
+  }
+
+  @Test fun `should convert BigDecimal to PlainString`() {
+    /* GIVEN */
+    val bigDecimal = BigDecimal("1.1991")
+    /* WHEN */
+    val result = bigDecimal()
+    /* THEN */
+    result::class shouldBe String::class
+  }
+
+  @Test fun `should format strings`() {
+    /* GIVEN */
+    val hello = "hello %s"
+    val world = "world"
+    /* WHEN */
+    val result = hello(world)
+    /* THEN */
+    result shouldBe "hello $world"
   }
 
   @MethodSource("shouldFoundZodiacSign")
