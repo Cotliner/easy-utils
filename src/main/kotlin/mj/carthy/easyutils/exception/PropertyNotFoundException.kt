@@ -11,5 +11,5 @@ data class PropertyNotFoundException(
     code,
     message
 ) {
-    override fun httpCode(): HttpStatus = NOT_FOUND
+    override val httpCode: HttpStatus = NOT_FOUND
 }

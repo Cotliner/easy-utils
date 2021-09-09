@@ -10,5 +10,5 @@ data class AccessDeniedException(
     code,
     message
 ) {
-    override fun httpCode(): HttpStatus = HttpStatus.UNAUTHORIZED
+    override val httpCode: HttpStatus = HttpStatus.UNAUTHORIZED
 }

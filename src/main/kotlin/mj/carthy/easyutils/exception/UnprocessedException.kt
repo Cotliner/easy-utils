@@ -11,5 +11,5 @@ data class UnprocessedException(
     code,
     message
 ) {
-    override fun httpCode(): HttpStatus = UNPROCESSABLE_ENTITY
+    override val httpCode: HttpStatus = UNPROCESSABLE_ENTITY
 }

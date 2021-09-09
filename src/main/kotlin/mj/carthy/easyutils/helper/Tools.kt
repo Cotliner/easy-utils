@@ -46,11 +46,8 @@ import java.util.stream.Collectors
 
 /*PATTERN*/
 const val DATE_PATTERN = "dd/MM/yyyy"
-const val NUMBER_PATTERN = "0.00"
 
 /*ERRORS*/
-const val PROPERTY_NOT_FOUND_ERROR = "The property %s is null in class %s with id %s"
-const val PROPERTY_NOT_FOUND_WITHOUT_ID_ERROR = "The property %s is null in class %s"
 const val CAN_NOT_FOUND_ENTITY_WITH_ID_ERROR = "Can not found %s with id : %s"
 const val CAN_NOT_FOUND_ZODIAC_SIGN_ERROR = "Can not found zodiac sign of date %s"
 

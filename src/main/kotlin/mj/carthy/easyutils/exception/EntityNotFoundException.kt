@@ -10,5 +10,5 @@ data class EntityNotFoundException(
     code,
     message
 ) {
-    override fun httpCode(): HttpStatus = HttpStatus.NOT_FOUND
+    override val httpCode: HttpStatus = HttpStatus.NOT_FOUND
 }
