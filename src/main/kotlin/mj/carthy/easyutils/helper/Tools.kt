@@ -10,18 +10,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactive.awaitSingleOrNull
 import mj.carthy.easyutils.document.BaseDocument
 import mj.carthy.easyutils.enums.ZodiacSign
-import mj.carthy.easyutils.enums.ZodiacSign.AQUARIUS
-import mj.carthy.easyutils.enums.ZodiacSign.ARIES
-import mj.carthy.easyutils.enums.ZodiacSign.CANCER
-import mj.carthy.easyutils.enums.ZodiacSign.CAPRICORN
-import mj.carthy.easyutils.enums.ZodiacSign.GEMINI
-import mj.carthy.easyutils.enums.ZodiacSign.LEO
-import mj.carthy.easyutils.enums.ZodiacSign.LIBRA
-import mj.carthy.easyutils.enums.ZodiacSign.PISCES
-import mj.carthy.easyutils.enums.ZodiacSign.SAGITTARIUS
-import mj.carthy.easyutils.enums.ZodiacSign.SCORPIO
-import mj.carthy.easyutils.enums.ZodiacSign.TAURUS
-import mj.carthy.easyutils.enums.ZodiacSign.VIRGO
+import mj.carthy.easyutils.enums.ZodiacSign.*
 import mj.carthy.easyutils.exception.EntityNotFoundException
 import mj.carthy.easyutils.exception.UnprocessedException
 import mj.carthy.easyutils.helper.Errors.Companion.ENTITY_NOT_FOUND
@@ -50,19 +39,20 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId.systemDefault
 import java.time.format.DateTimeFormatter
-import java.util.Optional
-import java.util.Random
-import java.util.UUID
+import java.util.*
 import java.util.function.Function
 import java.util.function.Function.identity
 import java.util.stream.Collectors
 
-/*PATTERN*/
-const val DATE_PATTERN = "dd/MM/yyyy"
+/* CONSTANTS */
+const val DASH: String = "-"
 
-/*ERRORS*/
-const val CAN_NOT_FOUND_ENTITY_WITH_ID_ERROR = "Can not found %s with id : %s"
-const val CAN_NOT_FOUND_ZODIAC_SIGN_ERROR = "Can not found zodiac sign of date %s"
+/* PATTERN */
+const val DATE_PATTERN: String = "dd/MM/yyyy"
+
+/* ERRORS */
+const val CAN_NOT_FOUND_ENTITY_WITH_ID_ERROR: String = "Can not found %s with id : %s"
+const val CAN_NOT_FOUND_ZODIAC_SIGN_ERROR: String = "Can not found zodiac sign of date %s"
 
 const val SCALE_AFTER_DOT = 2
 const val CODE_GENERATOR_LOW_VALUE = 10000
@@ -150,6 +140,7 @@ val DataBuffer.byteForBuffer get(): ByteArray {
 val Flux<FilePart>.bytes get(): Flux<ByteArray> = flatMap(FilePart::bytes)
 val Mono<FilePart>.bytes get(): Mono<ByteArray> = flatMap(FilePart::bytes)
 val FilePart.bytes get(): Mono<ByteArray> = content().map(DataBuffer::byteForBuffer).reduce(ArrayUtils::addAll)
+val <T> Collection<T>.isEmptyWithDash get(): Boolean = isEmpty() || (size == 1 && first() == DASH)
 
 val BigDecimal.isPositive get(): Boolean = this > BigDecimal.ZERO
 
