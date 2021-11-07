@@ -5,7 +5,11 @@ import com.google.gson.Gson
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactive.awaitSingleOrNull
 import mj.carthy.easyutils.document.BaseDocument
@@ -106,6 +110,8 @@ suspend fun <T> Flux<T>.toSet(): Set<T> = collect(Collectors.toSet()).awaitSingl
 /* CLASS EXTENSION: INLINE METHOD */
 inline fun <reified T> ObjectMapper.convert(json: String): T = readValue(json, T::class.java)
 inline fun <reified T> Gson.makeFrom(record: ConsumerRecord<String, Map<String, String>>): T = fromJson(toJsonTree(record.value()), T::class.java)
+inline fun <P: Any, reified C: P> Flux<P>.safeCast(): Flow<C> = filter { it is C }.map { it as C }.asFlow()
+inline fun <P: Any, reified C: P> Flow<P>.safeCast(): Flow<C> = filter { it is C }.map { it as C }
 
 /* CLASS EXTENSION: METHOD */
 fun LocalDate.isBetween(before: LocalDate, after: LocalDate): Boolean = (isAfter(before) && isBefore(after)) || equals(before) || equals(after)
@@ -147,7 +153,7 @@ val BigDecimal.isPositive get(): Boolean = this > BigDecimal.ZERO
 val <K, V: Comparable<V>> Map<K, V>.maxByValue get(): V? = maxByOrNull { it.value }?.value
 val <K: Comparable<K>, V> Map<K, V>.maxByKey get(): V? = maxByOrNull { it.key }?.value
 
-val Any.string: String get() = toString()
+val <T: Any> T.string: String get() = toString()
 val <T: Any> T.mono: Mono<T> get() = toMono()
 
 val String.uuid: UUID get() = UUID.fromString(this)
