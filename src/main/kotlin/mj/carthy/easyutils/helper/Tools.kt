@@ -27,6 +27,11 @@ import org.apache.commons.lang3.exception.ExceptionUtils.getMessage
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort.Direction
+import org.springframework.data.domain.Sort.Direction.ASC
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
 import org.springframework.http.HttpStatus
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.http.server.reactive.ServerHttpRequest
@@ -184,6 +189,10 @@ val LocalDate.zodiacSign get(): ZodiacSign = when (monthValue) {
 
 val Instant.localDate get(): LocalDate = atZone(systemDefault()).toLocalDate()
 val LocalDate.instant get(): Instant = atStartOfDay(systemDefault()).toInstant()
+
+fun Criteria.param(key: String, value: Any?): Criteria = if (value == null) this else and(key).`is`(value)
+fun Criteria.param(key: String, value: Any?, direction: Direction?) = if(value == null || direction == null) this else if (direction == ASC) and(key).gte(value) else and(key).lte(key)
+fun Query.nullableWith(pageable: Pageable?): Query = if(pageable == null) this else with(pageable)
 
 /* OPERATOR */
 operator fun Number.invoke(): BigDecimal = string.toBigDecimal()
